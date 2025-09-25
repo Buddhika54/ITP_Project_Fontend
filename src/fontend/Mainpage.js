@@ -214,16 +214,8 @@ const Home = () => {
       </section>
 
       {/* OUR OFFERINGS */}
-      <section id="offerings" className="py-16 px-6 "
-        style={{
-          backgroundImage:
-            "url('https://i.pinimg.com/736x/10/bd/6b/10bd6bf2c6b99ce1ce927ed2eb3873b3.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-        
-      >
-        <h2 className="text-3xl font-bold text-center mb-12 text-white">Our Offerings</h2>
+      <section id="offerings" className="py-16 px-6 ">
+        <h2 className="text-3xl font-bold text-center mb-12 text-black">Our Offerings</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white shadow-lg rounded-lg overflow-hidden">
             <a href="/greentea">
@@ -310,15 +302,8 @@ const Home = () => {
       </section>
 
       {/* NEWS & EVENTS */}
-      <section id="news" className="py-16 px-6"
-       style={{
-        backgroundImage:
-          "url('https://t3.ftcdn.net/jpg/12/96/35/10/360_F_1296351034_mZzH8FSmjz0PHNJuIdvZsXq0gYsbGggs.jpg')", 
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-      >
-        <h2 className="text-3xl text-white font-bold text-center mb-12">News & Events</h2>
+      <section id="news" className="py-16 px-6">
+        <h2 className="text-3xl text-black font-bold text-center mb-12">News & Events</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="bg-white shadow-lg rounded-lg overflow-hidden">
             <a href="/NewsPage">
@@ -360,7 +345,7 @@ const Home = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-gray-300 text-black py-10 px-6">
+      <footer className="bg-gray-800 text-white py-10 px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto text-center md:text-left">
           {/* LEFT SIDE */}
           <div>

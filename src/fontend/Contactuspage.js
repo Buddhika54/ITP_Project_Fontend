@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
+import axios from "axios";
 import assets from "../assets/RANAYA Logo.png";
 import "../output.css";
 
@@ -13,6 +14,16 @@ function ContactUs() {
   const [currentHero, setCurrentHero] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navScrolled, setNavScrolled] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [errors, setErrors] = useState({});
+  const [responseMsg, setResponseMsg] = useState(null);
 
   // Auto slide hero background
   useEffect(() => {
@@ -38,10 +49,49 @@ function ContactUs() {
     borderRadius: "10px",
   };
 
-  // Example coordinates for Ragama, Sri Lanka (replace with exact factory location)
-  const center = {
-    lat: 7.0271,
-    lng: 79.9229,
+  const center = { lat: 7.0271, lng: 79.9229 };
+
+  // Handle form input
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // Validate form
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required.";
+    if (!formData.email) newErrors.email = "Email is required.";
+    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Invalid email.";
+    if (!/^0\d{9}$/.test(formData.phone))
+      newErrors.phone = "Phone must start with 0 and be exactly 10 digits.";
+    if (!formData.message.trim()) newErrors.message = "Message is required.";
+    else if (formData.message.length < 10)
+      newErrors.message = "Message must be at least 10 characters.";
+    return newErrors;
+  };
+
+  // Handle form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+    setErrors({});
+    try {
+      const res = await axios.post("http://localhost:3001/api/contact/add", formData);
+      if (res.data.success) {
+        setResponseMsg({ type: "success", text: "✅ Message sent successfully!" });
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      }
+    } catch (error) {
+      setResponseMsg({
+        type: "error",
+        text: error.response?.data?.error || "Something went wrong!",
+      });
+    }
   };
 
   return (
@@ -53,11 +103,7 @@ function ContactUs() {
         }`}
       >
         <div className="flex flex-col items-center ms-5">
-          <img
-            src={assets}
-            alt="Ranaya Logo"
-            className="w-8 h-8 object-contain mb-2"
-          />
+          <img src={assets} alt="Ranaya Logo" className="w-8 h-8 object-contain mb-2" />
           <span className="text-2xl font-bold text-green">RANAYA</span>
         </div>
         <ul className="hidden md:flex space-x-6 text-lg">
@@ -83,42 +129,10 @@ function ContactUs() {
           </a>
         </div>
         {/* Mobile Menu Button */}
-        <button
-          className="md:hidden text-2xl"
-          onClick={() => setSidebarOpen(true)}
-        >
+        <button className="md:hidden text-2xl" onClick={() => setSidebarOpen(true)}>
           <FaBars />
         </button>
       </nav>
-
-      {/* Sidebar for Mobile */}
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-green-800 text-white transform ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out z-50`}
-      >
-        <div className="flex justify-between items-center px-4 py-4 border-b border-green-600">
-          <span className="text-xl font-bold">Menu</span>
-          <button onClick={() => setSidebarOpen(false)} className="text-2xl">
-            <FaTimes />
-          </button>
-        </div>
-        <ul className="flex flex-col space-y-4 mt-6 px-4 text-lg">
-          <li><a href="/" className="hover:text-orange-300" onClick={() => setSidebarOpen(false)}>Home</a></li>
-          <li><a href="/ourStory" className="hover:text-orange-300" onClick={() => setSidebarOpen(false)}>Our Story</a></li>
-          <li><a href="/ourOfferings" className="hover:text-orange-300" onClick={() => setSidebarOpen(false)}>Our Products</a></li>
-          <li><a href="/NewsPage" className="hover:text-orange-300" onClick={() => setSidebarOpen(false)}>News</a></li>
-          <li><a href="/ContactUspage" className="hover:text-orange-300" onClick={() => setSidebarOpen(false)}>Contact Us</a></li>
-        </ul>
-      </div>
-
-      {/* Overlay when sidebar is open */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={() => setSidebarOpen(false)}
-        ></div>
-      )}
 
       {/* HERO SECTION */}
       <section
@@ -145,20 +159,69 @@ function ContactUs() {
         {/* Contact Form */}
         <div className="bg-white p-8 shadow-lg rounded-lg">
           <h2 className="text-2xl font-bold text-green-700 mb-6">Send Us a Message</h2>
-          <form className="space-y-4">
+
+          {responseMsg && (
+            <p
+              className={`mb-4 text-center font-medium ${
+                responseMsg.type === "success" ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {responseMsg.text}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block font-medium mb-2">Name</label>
-              <input type="text" className="w-full border rounded px-4 py-2" placeholder="Your Name" />
+              <label className="block font-medium mb-2">Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-400"
+                placeholder="Your Name"
+              />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
             </div>
             <div>
-              <label className="block font-medium mb-2">Email</label>
-              <input type="email" className="w-full border rounded px-4 py-2" placeholder="Your Email" />
+              <label className="block font-medium mb-2">Email *</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-400"
+                placeholder="Your Email"
+              />
+              {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
             </div>
             <div>
-              <label className="block font-medium mb-2">Message</label>
-              <textarea className="w-full border rounded px-4 py-2 h-32" placeholder="Your Message"></textarea>
+              <label className="block font-medium mb-2">Phone *</label>
+              <input
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full border rounded px-4 py-2 focus:ring-2 focus:ring-green-400"
+                placeholder="0XXXXXXXXX"
+              />
+              {errors.phone && <p className="text-red-500 text-sm">{errors.phone}</p>}
             </div>
-            <button className="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800">
+            <div>
+              <label className="block font-medium mb-2">Message *</label>
+              <textarea
+                name="message"
+                value={formData.message}
+                onChange={handleChange}
+                className="w-full border rounded px-4 py-2 h-32 focus:ring-2 focus:ring-green-400"
+                placeholder="Your Message"
+              />
+              {errors.message && <p className="text-red-500 text-sm">{errors.message}</p>}
+            </div>
+            <button
+              type="submit"
+              className="bg-green-700 text-white px-6 py-2 rounded hover:bg-green-800 transition w-full"
+            >
               Send Message
             </button>
           </form>
@@ -180,56 +243,37 @@ function ContactUs() {
             <p className="font-medium">Email:</p>
             <p>info@ranayatea.com</p>
           </div>
-          <div>
-            <p className="font-medium">🌐 Follow Us:</p>
-            <div className="flex space-x-4 mt-2">
-              <a href="/" className="text-green-700 hover:text-green-900">Facebook</a>
-              <a href="/" className="text-green-700 hover:text-green-900">Instagram</a>
-              <a href="/" className="text-green-700 hover:text-green-900">LinkedIn</a>
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* ✅ INTERACTIVE GOOGLE MAP */}
+      {/* ✅ Google Map */}
       <section className="px-6 pb-12">
         <h3 className="text-2xl font-bold text-center mb-4">Find Us Here</h3>
         <LoadScript googleMapsApiKey="AIzaSyAkBKS1F5HQ2P1yCTrA51jtANiGUIpZps4">
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            center={center}
-            zoom={15}
-          >
+          <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={15}>
             <Marker position={center} />
           </GoogleMap>
         </LoadScript>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-gray-300 text-black py-10 px-6">
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-10 px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto text-center md:text-left">
-          {/* LEFT SIDE */}
           <div>
             <h4 className="text-lg font-semibold mb-2">Ranaya Tea Factory</h4>
-            <p>Export Processing Center,</p>
-            <p>24 Parakrama Road, Mathumagala,</p>
-            <p>Ragama, Sri Lanka.</p>
+            <p>Export Processing Center, 24 Parakrama Road, Mathumagala, Ragama, Sri Lanka.</p>
             <p className="mt-2">Phone: +94 114 789 999</p>
             <p>Email: inquiry@ranaya.com</p>
             <p>Email: sales.ceylon@ranaya.com</p>
           </div>
-          {/* MIDDLE */}
           <div className="flex flex-col items-center justify-center">
             <img src={assets} alt="Factory Logo" className="w-12 h-12 mb-2" />
             <h4 className="text-xl font-bold">RANAYA</h4>
             <p className="text-sm tracking-widest">CLIMATE POSITIVE AND BEYOND</p>
           </div>
-          {/* RIGHT SIDE */}
           <div>
-            <h4 className="text-lg font-semibold mb-2">Ranaya Tea Factory</h4>
-            <p>Head Office,</p>
-            <p>153 Nawala Road, Narahenpita,</p>
-            <p>Colombo 05, Sri Lanka.</p>
+            <h4 className="text-lg font-semibold mb-2">Head Office</h4>
+            <p>153 Nawala Road, Narahenpita, Colombo 05, Sri Lanka.</p>
             <p className="mt-2">Phone: +94 11 2510000</p>
           </div>
         </div>
@@ -238,6 +282,8 @@ function ContactUs() {
         </div>
       </footer>
     </div>
+
+    
   );
 }
 

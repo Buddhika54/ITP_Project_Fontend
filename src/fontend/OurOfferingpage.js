@@ -212,7 +212,7 @@ const OurOfferings = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-gray-300 text-black py-10 px-6">
+      <footer className="bg-gray-800 text-white py-10 px-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto text-center md:text-left">
           {/* LEFT SIDE */}
           <div>
