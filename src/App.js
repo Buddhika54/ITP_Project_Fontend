@@ -106,6 +106,14 @@ import Sales from "./components/Admin/Sales";
 // Customer customer
 import CustomerDashboard from "./pages/customer/CustomerDashboard";
 import CustomerAuctions from "./pages/customer/CustomerAuctions";
+import EmpSummary from './EmployeeDashboard/EmpSummary';
+import LeaveList from './EmployeeDashboard/leave/LeaveList';
+import AddLeave from './EmployeeDashboard/leave/AddLeave';
+import Setting from './EmployeeDashboard/Setting';
+import LeaveTable from './EmployeeDashboard/leave/LeaveTable';
+import LeaveDetail from './EmployeeDashboard/leave/LeaveDetail';
+import Attendence from './components/attendence/Attendence';
+import AttendenceReport from './components/attendence/AttendenceReport';
 
 function App() {
   const [orders, setOrders] = useState([]);
@@ -164,11 +172,33 @@ function App() {
           <Route path="employees/:id" element={<View />} />
           <Route path="employees/edit/:id" element={<Edit />} />
           <Route path="salary" element={<SalaryAdd />} />
+          <Route path="/admin-dashboard/attendence" element={<Attendence />} />
+          <Route path="/admin-dashboard/attendence-report" element={<AttendenceReport />} />
+          <Route path="/admin-dashboard/employees/leaves/:id" element={<LeaveList />} />
           <Route path="employees/salary/:id" element={<SalaryView />} />
+          <Route path="/admin-dashboard/leaves" element={<LeaveTable />} />
+          <Route path="/admin-dashboard/leaves/:id" element={<LeaveDetail />}/>
+          
         </Route>
 
         {/* Employee Dashboard */}
-        <Route path="/emp-dashboard" element={<EmpDashboard />} />
+        <Route 
+          path="/emp-dashboard" 
+          element={
+            <PrivateRoutes>
+              <RoleBaseRoutes requiredRole={["admin", "employee"]}>
+                <EmpDashboard />
+              </RoleBaseRoutes>
+            </PrivateRoutes>
+          } >
+            <Route index element={<EmpSummary/>}></Route>
+            <Route path="/emp-dashboard/profile/:id" element={<View />}></Route>
+            <Route path="/emp-dashboard/leaves/:id" element={<LeaveList />}></Route>
+            <Route path="/emp-dashboard/add-leave" element={<AddLeave />}></Route>
+            <Route path="/emp-dashboard/salary/:id" element={<SalaryView />}></Route>
+            <Route path="/emp-dashboard/setting" element={<Setting />}></Route>
+            
+        </Route>
 
         {/* Customer area */}
         <Route path="/customer" element={<CustomerLayout />}>

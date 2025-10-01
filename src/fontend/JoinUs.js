@@ -121,7 +121,7 @@ export default function JoinUs() {
       </div>
 
       {/* Hero Section */}
-      <section className="bg-green-900 text-center py-16 mt-20">
+      <section className="bg-green-900 text-center py-16">
         <div className='mt-12'>
           <h1 className="text-4xl md:text-5xl font-bold text-white">Looking forward to hearing from you...</h1>
           <p className="text-lg text-yellow-300 mt-4">The following channels are dedicated to help you get in touch with the right team.</p>
