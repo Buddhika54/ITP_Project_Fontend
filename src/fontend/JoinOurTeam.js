@@ -108,7 +108,7 @@ const JoinOurTeam = () => {
       >
         <div className="flex items-center space-x-2">
           <img src={assets} alt="Ranaya Logo" className="w-8 h-8 object-contain" />
-          <span className="text-2xl font-bold text-green-500">RANAYA</span>
+          <span className="text-2xl font-bold text-white">RANAYA</span>
         </div>
         <ul className="hidden md:flex space-x-6 text-lg">
           <li>
@@ -144,7 +144,7 @@ const JoinOurTeam = () => {
       </div>
 
       {/* Form Section */}
-      <main className="flex-grow pt-24 px-6 bg-gray-800">
+      <main className="min-h-screen bg-gradient-to-b from-green-700 to-gray-100 flex items-center justify-center py-10 px-4">
         <div className="max-w-3xl mx-auto mt-8 mb-12 bg-white p-8 rounded-xl shadow-lg">
           <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">Submit a Ticket - HR Department</h2>
 
@@ -192,7 +192,7 @@ const JoinOurTeam = () => {
 
             {/* PDF Upload */}
             <div>
-              <label className="block font-semibold text-gray-700">Upload PDF *</label>
+              <label className="block font-semibold text-gray-700">Upload Your CV File *</label>
               <input type="file" accept="application/pdf" onChange={handleFileChange} className="w-full mt-1" />
               {pdfFile && <p className="text-green-700 text-sm mt-1">Selected file: {pdfFile.name}</p>}
               {errors.pdf && <p className="text-red-500 text-sm">{errors.pdf}</p>}

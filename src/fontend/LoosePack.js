@@ -258,12 +258,13 @@ const LoosePack = () => {
               <li>🌱 Authentic brewing experience in every cup</li>
               <li>🌱 Rich in natural antioxidants, supporting wellness and a healthy lifestyle</li>
               <li>🌱 Ideal for personal use or gifting</li>
+              <li><a href='/join' className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
+              Inquiry Now
+            </a></li>
             </ul>
 
             {/* ORDER BUTTON */}
-            <button className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
-              Order Now
-            </button>
+            
           </div>
         </div>
       </section>

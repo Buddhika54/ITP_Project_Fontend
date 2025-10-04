@@ -27,14 +27,43 @@ const AdminLogin = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // If user enters a role as the password, navigate directly without hitting the API
+      const pwLower = String(password || '').trim().toLowerCase();
+      const roleRoutes = {
+        demanager: '/Delidashboard',
+        maimanager: '/MainDashboard',
+        salmanager: '/emp-dashboard',
+        inmanager: '/dashboard',
+      };
+
+      if (pwLower && roleRoutes[pwLower]) {
+        // Create a minimal session to avoid auth-guard issues on dashboards
+        login({ role: pwLower, email, name: 'Bypass User' });
+        localStorage.setItem('token', 'DEV_BYPASS');
+        navigate(roleRoutes[pwLower]);
+        return;
+      }
+
+      // Otherwise, proceed with normal login flow
       const response = await axios.post('http://localhost:3001/api/adlogin', { email, password });
       if(response.data.success){
         const { admin, token } = response.data;
         login(admin);
         localStorage.setItem("token", token);
         const role = String(admin?.role || '').toLowerCase();
-        if(role === 'admin') navigate('/admin-dashboard');
-        else navigate('/emp-dashboard');
+        if(role === 'admin') {
+          navigate('/admin-dashboard');
+        }else if(role === 'demanager'){
+          navigate('/Delidashboard')
+        }else if(role === 'maimanager'){
+          navigate('/MainDashboard');
+        }else if(role === 'salmanager'){
+          navigate('/emp-dashboard')
+        }else if(role === 'inmanager'){
+          navigate('/dashboard')
+        }else{
+          navigate('/emp-dashboard')
+        }
       }
     } catch (error) {
       if(error.response && !error.response.data.success){

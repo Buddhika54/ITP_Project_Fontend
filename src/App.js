@@ -114,6 +114,9 @@ import LeaveTable from './EmployeeDashboard/leave/LeaveTable';
 import LeaveDetail from './EmployeeDashboard/leave/LeaveDetail';
 import Attendence from './components/attendence/Attendence';
 import AttendenceReport from './components/attendence/AttendenceReport';
+import SupplierList from './components/supplier/SupplierList';
+import CustomerList from './components/customer/CustomerList';
+import ChatbotWidget from './fontend/ChatbotWidget';
 
 function App() {
   const [orders, setOrders] = useState([]);
@@ -178,6 +181,8 @@ function App() {
           <Route path="employees/salary/:id" element={<SalaryView />} />
           <Route path="/admin-dashboard/leaves" element={<LeaveTable />} />
           <Route path="/admin-dashboard/leaves/:id" element={<LeaveDetail />}/>
+          <Route path="/admin-dashboard/supplier" element={<SupplierList />}/>
+          <Route path="/admin-dashboard/customer" element={<CustomerList />}/>
           
         </Route>
 
@@ -287,6 +292,7 @@ function App() {
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/customer/dashboard" replace />} />
       </Routes>
+      <ChatbotWidget/>
     </BrowserRouter>
   );
 }

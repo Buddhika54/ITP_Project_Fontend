@@ -199,6 +199,7 @@ const EmpAdd = () => {
               <option value="employee">Inventory Manager</option>
               <option value="employee">Maintenance Manager</option>
               <option value="employee">Delivery Manager</option>
+              <option value="employee">Technician</option>
               <option value="employee">Tea Plucker</option>
               <option value="employee">Estate Manager</option>
               <option value="employee">Mandor</option>

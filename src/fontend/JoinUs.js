@@ -82,7 +82,7 @@ export default function JoinUs() {
       >
         <div className="flex flex-col items-center ms-5">
           <img src={assets} alt="Ranaya Logo" className="w-8 h-8 object-contain mb-2" />
-          <span className="text-2xl font-bold text-green">RANAYA</span>
+          <span className="text-2xl font-bold text-white">RANAYA</span>
         </div>
         <ul className="hidden md:flex space-x-6 text-lg">
           <li><a href="/join" className="hover:text-green-300 bg-green-700 px-4 py-2 rounded-lg">Join Us</a></li>
@@ -132,7 +132,7 @@ export default function JoinUs() {
       <section className="py-12 px-6 bg-green-900 flex flex-col md:flex-row items-center justify-center gap-10">
         <div className="flex flex-col gap-4">
           <button className="bg-white text-green-800 px-6 py-3 rounded-full shadow hover:bg-gray-100">Explore Our Offerings</button>
-          <button className="bg-white text-green-800 px-6 py-3 rounded-full shadow hover:bg-gray-100">Order Related Feedback</button>
+          <a href='/customerDetails' className="bg-white text-green-800 px-6 py-3 rounded-full shadow hover:bg-gray-100">Join as customer</a>
         </div>
         <img src="https://evergreengroup.lk/factories//images/home-slider/image0.jpg" alt="Tea workers" className="rounded-xl shadow-lg w-full md:w-[600px] object-cover" />
         <div className="flex flex-col gap-4">

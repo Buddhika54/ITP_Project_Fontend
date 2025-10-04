@@ -258,12 +258,13 @@ const FlavoredBlends = () => {
               <li>🌱 Carefully processed to preserve the delicate flavors and health benefits of the tea leaves</li>
               <li>🌱 Perfect for every occasion, whether a calming cup or a refreshing treat</li>
               <li>🌱 Brewing tip: Steep 2–4 minutes at 85°C–90°C for a flavorful and invigorating cup</li>
+              <li><a href='/join' className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
+              Inquiry Now
+            </a></li>
             </ul>
 
             {/* ORDER BUTTON */}
-            <button className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
-              Order Now
-            </button>
+            
           </div>
         </div>
       </section>

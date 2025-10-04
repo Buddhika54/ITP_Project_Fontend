@@ -258,12 +258,13 @@ const GreenTea = () => {
               <li>🌱 Minimally processed to preserve antioxidants, including EGCG, for a healthy boost</li>
               <li>🌱 Promotes wellness, supporting metabolism, heart health, and overall vitality</li>
               <li>🌱 Brewing tip: Steep 2–3 minutes at 80°C–85°C for a refreshing, soothing cup, perfect any time of day</li>
+              <li><a href='/join' className="mt-20 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
+              Inquiry Now
+            </a></li>
             </ul>
 
             {/* ORDER BUTTON */}
-            <button className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
-              Order Now
-            </button>
+            
           </div>
         </div>
       </section>

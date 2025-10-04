@@ -49,6 +49,16 @@ const AdminSidebar = () => {
           <AiOutlineFileText />
           <span>Attendence Report</span>
         </NavLink>
+        <NavLink to="/admin-dashboard/supplier"
+          className={({isActive})=> `${isActive ? " bg-green-500 " : " "}flex items-center space-x-4 block py-2.5 px-4 rounded`}>
+            <FaUsers />
+          <span>Suppliers</span>
+        </NavLink>
+        <NavLink to="/admin-dashboard/customer"
+          className={({isActive})=> `${isActive ? " bg-green-500 " : " "}flex items-center space-x-4 block py-2.5 px-4 rounded`}>
+          <FaUsers />
+          <span>Customers</span>
+        </NavLink>
       </div>
     </div>
     

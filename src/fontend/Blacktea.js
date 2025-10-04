@@ -258,12 +258,13 @@ const PremiumBlackTea = () => {
               <li>🌱 Hand-picked from Uva highlands</li>
               <li>🌱 Perfect for everyday brewing</li>
               <li>🌱 Steep 3 minutes at 95°C - 100°C</li>
+              <li><a href='/join' className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
+              Inquiry Now
+            </a></li>
             </ul>
 
             {/* ORDER BUTTON */}
-            <button className="mt-8 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg">
-              Order Now
-            </button>
+            
           </div>
         </div>
       </section>

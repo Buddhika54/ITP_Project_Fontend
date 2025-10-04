@@ -13,6 +13,8 @@ const Supplier = () => {
     email: "",
     subject: "",
     description: "",
+    vehicleType: "",
+    vehicleNumber: "",
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -33,9 +35,17 @@ const Supplier = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required.";
     if (!formData.email) newErrors.email = "Email is required.";
-    else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid.";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Email is invalid.";
     if (!formData.subject.trim()) newErrors.subject = "Subject is required.";
-    if (!formData.description.trim()) newErrors.description = "Description is required.";
+    if (!formData.description.trim())
+      newErrors.description = "Description is required.";
+    if (!formData.vehicleType.trim())
+      newErrors.vehicleType = "Vehicle type is required.";
+    if (!formData.vehicleNumber.trim())
+      newErrors.vehicleNumber = "Vehicle number is required.";
+    else if (!/^[A-Z]{2,3}-[A-Z]{1,3}-\d{3,4}$/i.test(formData.vehicleNumber))
+      newErrors.vehicleNumber = "Invalid vehicle number (e.g. WP-ABC-1234)";
     return newErrors;
   };
 
@@ -64,7 +74,14 @@ const Supplier = () => {
 
       if (response.data.success) {
         setMessage({ type: "success", text: "✅ Ticket submitted successfully!" });
-        setFormData({ name: "", email: "", subject: "", description: "" });
+        setFormData({
+          name: "",
+          email: "",
+          subject: "",
+          description: "",
+          vehicleType: "",
+          vehicleNumber: "",
+        });
         setTimeout(() => navigate("/join"), 2000); // redirect after 2 seconds
       }
     } catch (error) {
@@ -87,7 +104,7 @@ const Supplier = () => {
       >
         <div className="flex items-center space-x-2">
           <img src={assets} alt="Ranaya Logo" className="w-8 h-8 object-contain" />
-          <span className="text-2xl font-bold text-green-500">RANAYA</span>
+          <span className="text-2xl font-bold text-white">RANAYA</span>
         </div>
         <ul className="hidden md:flex space-x-6 text-lg">
           <li>
@@ -108,7 +125,7 @@ const Supplier = () => {
         </div>
       </nav>
 
-      {/* Sidebar for mobile */}
+      {/* Sidebar */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40"
@@ -135,14 +152,13 @@ const Supplier = () => {
         </ul>
       </div>
 
-      {/* Form Section */}
-      <main className="flex-grow pt-24 px-6 bg-gray-800">
+      {/* Form */}
+      <main className="min-h-screen bg-gradient-to-b from-green-700 to-gray-100 flex items-center justify-center py-10 px-4">
         <div className="max-w-3xl mx-auto mt-8 mb-12 bg-white p-8 rounded-xl shadow-lg">
           <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">
             Submit a Ticket - Procurement Department
           </h2>
 
-          {/* Success/Error message */}
           {message.text && (
             <div
               className={`mb-4 p-4 rounded ${
@@ -193,6 +209,39 @@ const Supplier = () => {
               {errors.subject && <p className="text-red-500 text-sm">{errors.subject}</p>}
             </div>
 
+            {/* Vehicle Type */}
+            <div>
+              <label className="block font-semibold text-gray-700">Vehicle Type *</label>
+              <select
+                name="vehicleType"
+                value={formData.vehicleType}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-green-400"
+              >
+                <option value="">-- Select Vehicle Type --</option>
+                <option value="Lorry">Lorry</option>
+                <option value="Van">Van</option>
+                <option value="Tractor">Tractor</option>
+                <option value="Container">Container</option>
+                <option value="Other">Other</option>
+              </select>
+              {errors.vehicleType && <p className="text-red-500 text-sm">{errors.vehicleType}</p>}
+            </div>
+
+            {/* Vehicle Number */}
+            <div>
+              <label className="block font-semibold text-gray-700">Vehicle Number *</label>
+              <input
+                type="text"
+                name="vehicleNumber"
+                value={formData.vehicleNumber}
+                onChange={handleChange}
+                placeholder="WP-ABC-1234"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
+              {errors.vehicleNumber && <p className="text-red-500 text-sm">{errors.vehicleNumber}</p>}
+            </div>
+
             {/* Description */}
             <div>
               <label className="block font-semibold text-gray-700">Description *</label>
@@ -205,6 +254,8 @@ const Supplier = () => {
               ></textarea>
               {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
             </div>
+
+            
 
             {/* Submit */}
             <button
