@@ -9,10 +9,7 @@ const SidebarComp = () => {
     { name: 'Delivery List', path: '/DelList' },
     { name: 'Make Delivery', path: '/make-delivery' },
     { name: 'Drivers', path: '/drivers' },
-    { name: 'Vehicles', path: '/vehicles' },
-    { name: 'Routes', path: '/routes' },
     { name: 'Notifications', path: '/notify' },
-    { name: 'Reports', path: '/reports' },
     { name: 'Profile', path: '/profile' },
     
   ];

@@ -276,11 +276,13 @@
 
 /* Warehouse Card */
 .warehouse-card {
-  background: rgba(255, 255, 255, 0.95); /* More opaque white */
+  display: flex;
+  flex-direction: column;
+  background: #fff;
   border-radius: 12px;
   padding: 20px;
-  border: 2px solid rgba(76, 175, 80, 0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
   overflow: hidden;
 }
@@ -367,6 +369,31 @@
 /* Warehouse Content */
 .warehouse-content {
   margin-bottom: 15px;
+}
+
+.capacity-info {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.capacity-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.capacity-bar {
+  height: 6px;
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.capacity-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease-in-out;
 }
 
 .capacity-info {

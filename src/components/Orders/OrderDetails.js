@@ -7,7 +7,7 @@ export default function OrderDetails() {
   const { id } = useParams(); 
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = "http://localhost:3001";
 
   useEffect(() => {
     const fetchOrder = async () => {

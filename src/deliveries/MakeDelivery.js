@@ -8,6 +8,8 @@ export default function MakeDelivery() {
     orderQuantity: "",
     product: "",
     status: "Pending",
+    customerAddress: "",
+    customerLocation: { lat: 6.9271, lng: 79.8612 }, // Default: Colombo
   });
 
   const [message, setMessage] = useState("");
@@ -26,6 +28,20 @@ export default function MakeDelivery() {
       return; // ignore input if it contains non-numeric characters
     }
 
+    // Validate orderQuantity - only positive integers
+    if (name === "orderQuantity") {
+      // Allow empty string for clearing the field
+      if (value === "") {
+        setFormData({ ...formData, [name]: value });
+        return;
+      }
+      // Only allow positive integers
+      const numValue = parseInt(value, 10);
+      if (isNaN(numValue) || numValue < 1 || !Number.isInteger(parseFloat(value))) {
+        return; // ignore invalid input
+      }
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -42,7 +58,7 @@ export default function MakeDelivery() {
 
       if (res.ok) {
         setMessage("✅ Delivery created successfully!");
-        setTimeout(() => navigate("/DelList"), 1000);
+        setTimeout(() => navigate("/"), 1000);
       } else {
         const errorData = await res.json();
         setMessage("❌ Error: " + errorData.message);
@@ -158,14 +174,38 @@ export default function MakeDelivery() {
                   <input
                     type="number"
                     name="orderQuantity"
-                    placeholder="Enter quantity"
+                    placeholder="Enter quantity (min: 1)"
                     value={formData.orderQuantity}
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
                     required
                     min="1"
+                    step="1"
+                    title="Order quantity must be a positive integer (minimum 1)"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Enter a positive whole number (e.g., 1, 2, 3...)
+                  </p>
                 </div>
+              </div>
+
+              {/* Customer Address */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Customer Address *
+                </label>
+                <textarea
+                  name="customerAddress"
+                  placeholder="Enter delivery address"
+                  value={formData.customerAddress}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+                  rows="2"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Full delivery address for GPS tracking
+                </p>
               </div>
 
               {/* Status */}

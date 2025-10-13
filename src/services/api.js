@@ -9,6 +9,11 @@ const API = axios.create({
 API.interceptors.request.use(
   (config) => {
     console.log('Making API request to:', config.url);
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      config.headers.Authorization = `Bearer ${user.token}`;
+    }
     return config;
   },
   (error) => {
@@ -25,6 +30,11 @@ API.interceptors.response.use(
   },
   (error) => {
     console.error('API response error:', error.response?.status, error.response?.data || error.message);
+    if (error.response && error.response.status === 401) {
+      // If unauthorized, redirect to login
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
     return Promise.reject(error);
   }
 );
@@ -50,9 +60,13 @@ export const deleteSupplier = (id) => API.delete(`/suppliers/${id}`);
 // Warehouses
 export const getWarehouses = () => API.get("/warehouses");
 export const getWarehouseById = (id) => API.get(`/warehouses/${id}`);
+export const getWarehouseInventory = (id) => API.get(`/inventory/by-warehouse/${id}`);
+export const getWarehouseStats = () => API.get("/warehouses/stats");
+export const getWarehouseInventoryDistribution = () => API.get("/warehouses/inventory-distribution");
 export const createWarehouse = (data) => API.post("/warehouses", data);
 export const updateWarehouse = (id, data) => API.put(`/warehouses/${id}`, data);
 export const deleteWarehouse = (id) => API.delete(`/warehouses/${id}`);
+export const transferInventory = (data) => API.post("/warehouses/transfer", data);
 
 // Tea Varieties
 export const getTeaVarieties = () => API.get("/tea-varieties");

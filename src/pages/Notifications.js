@@ -263,7 +263,7 @@ const Notifications = () => {
       </div>
 
       {/* Filters */}
-      <div className="filters-section">
+      {/* <div className="filters-section">
         <div className="filters-header">
           <h3><MdFilterList /> Filters</h3>
         </div>
@@ -302,7 +302,82 @@ const Notifications = () => {
             </select>
           </div>
         </div>
-      </div>
+      </div> */}
+
+      {/* Filters */}
+<div className="filters-section">
+  <div className="filters-header">
+    <h3><MdFilterList /> Filters</h3>
+  </div>
+  
+  <div 
+    className="filter-controls"
+    style={{
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: '20px',
+      flexWrap: 'wrap'
+    }}
+  >
+    <div 
+      className="filter-group"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
+        minWidth: '150px'
+      }}
+    >
+      <label>Status</label>
+      <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+        <option value="all">All Status</option>
+        <option value="unread">Unread</option>
+        <option value="read">Read</option>
+        <option value="resolved">Resolved</option>
+      </select>
+    </div>
+
+    <div 
+      className="filter-group"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
+        minWidth: '150px'
+      }}
+    >
+      <label>Type</label>
+      <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+        <option value="all">All Types</option>
+        <option value="low_stock">Low Stock</option>
+        <option value="out_of_stock">Out of Stock</option>
+        <option value="reorder_request">Reorder Request</option>
+        <option value="supplier_alert">Supplier Alert</option>
+        <option value="system_alert">System Alert</option>
+      </select>
+    </div>
+
+    <div 
+      className="filter-group"
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '5px',
+        minWidth: '150px'
+      }}
+    >
+      <label>Priority</label>
+      <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+        <option value="all">All Priorities</option>
+        <option value="critical">Critical</option>
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+  </div>
+</div>
 
       {/* Notifications List */}
       <div className="notifications-list">

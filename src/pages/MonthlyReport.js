@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatCurrency, formatCurrencyForExport } from '../utils/formatters';
 import {
   MdCalendarToday,
   MdRefresh,
   MdDownload,
-  MdTrendingUp,
-  MdInventory,
-  MdShoppingCart,
   MdBusiness,
   MdAssessment,
   MdWarning,
@@ -135,7 +133,7 @@ const MonthlyReport = () => {
           </div>
           <div class="summary-card">
             <h3>Inventory Value</h3>
-            <div class="summary-value">$${reportData.summary.inventory.totalValue.toLocaleString()}</div>
+            <div class="summary-value">${formatCurrencyForExport(reportData.summary.inventory.totalValue)}</div>
           </div>
           <div class="summary-card">
             <h3>Total Transactions</h3>
@@ -163,7 +161,7 @@ const MonthlyReport = () => {
               <tr>
                 <td>${cat._id}</td>
                 <td>${cat.totalItems}</td>
-                <td>$${cat.totalValue.toFixed(2)}</td>
+                <td>${formatCurrencyForExport(cat.totalValue)}</td>
                 <td>${cat.lowStockCount}</td>
                 <td>${cat.outOfStockCount}</td>
               </tr>
@@ -374,113 +372,7 @@ const MonthlyReport = () => {
             </div>
           </div>
 
-          {/* Summary Cards */}
-          <div className="summary-cards">
-            <div className="summary-card inventory">
-              <div className="card-header">
-                <h3>Inventory Overview</h3>
-                <MdInventory className="card-icon" />
-              </div>
-              <div className="card-content">
-                <div className="metric">
-                  <span className="metric-label">Total Items</span>
-                  <span className="metric-value">{reportData.summary.inventory.totalItems}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Total Value</span>
-                  <span className="metric-value">${reportData.summary.inventory.totalValue.toLocaleString()}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Low Stock Items</span>
-                  <span className="metric-value warning">{reportData.summary.inventory.lowStockItems}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Out of Stock</span>
-                  <span className="metric-value danger">{reportData.summary.inventory.outOfStockItems}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="summary-card transactions">
-              <div className="card-header">
-                <h3>Transaction Activity</h3>
-                <MdShowChart className="card-icon" />
-              </div>
-              <div className="card-content">
-                <div className="metric">
-                  <span className="metric-label">Total Transactions</span>
-                  <span className="metric-value">{reportData.summary.transactions.totalTransactions}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Inbound</span>
-                  <span className="metric-value success">{reportData.summary.transactions.inbound}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Outbound</span>
-                  <span className="metric-value info">{reportData.summary.transactions.outbound}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Adjustments</span>
-                  <span className="metric-value">{reportData.summary.transactions.adjustments}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="summary-card purchase-orders">
-              <div className="card-header">
-                <h3>Purchase Orders</h3>
-                <MdShoppingCart className="card-icon" />
-              </div>
-              <div className="card-content">
-                <div className="metric">
-                  <span className="metric-label">Total Orders</span>
-                  <span className="metric-value">{reportData.summary.purchaseOrders.totalOrders}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Total Value</span>
-                  <span className="metric-value">${reportData.summary.purchaseOrders.totalValue.toLocaleString()}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Completed</span>
-                  <span className="metric-value success">{reportData.summary.purchaseOrders.completed}</span>
-                </div>
-                <div className="metric">
-                  <span className="metric-label">Pending</span>
-                  <span className="metric-value warning">{reportData.summary.purchaseOrders.pending}</span>
-                </div>
-              </div>
-            </div>
-
-            {yearlyComparison && (
-              <div className="summary-card yearly-comparison">
-                <div className="card-header">
-                  <h3>Year-over-Year Growth</h3>
-                  <MdTrendingUp className="card-icon" />
-                </div>
-                <div className="card-content">
-                  <div className="metric">
-                    <span className="metric-label">Transactions</span>
-                    <span className={`metric-value ${yearlyComparison.growth.transactions >= 0 ? 'success' : 'danger'}`}>
-                      {yearlyComparison.growth.transactions >= 0 ? '+' : ''}{yearlyComparison.growth.transactions}%
-                    </span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Purchase Orders</span>
-                    <span className={`metric-value ${yearlyComparison.growth.purchaseOrders >= 0 ? 'success' : 'danger'}`}>
-                      {yearlyComparison.growth.purchaseOrders >= 0 ? '+' : ''}{yearlyComparison.growth.purchaseOrders}%
-                    </span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Purchase Value</span>
-                    <span className={`metric-value ${yearlyComparison.growth.purchaseValue >= 0 ? 'success' : 'danger'}`}>
-                      {yearlyComparison.growth.purchaseValue >= 0 ? '+' : ''}{yearlyComparison.growth.purchaseValue}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
+          
           {/* Charts Section */}
           <div className="charts-section">
             <div className="chart-row">
@@ -540,7 +432,7 @@ const MonthlyReport = () => {
                         <td className="category-name">{category._id}</td>
                         <td>{category.totalItems}</td>
                         <td>{category.totalStock.toLocaleString()}</td>
-                        <td className="value">${category.totalValue.toLocaleString()}</td>
+                        <td className="value">{formatCurrency(category.totalValue)}</td>
                         <td className={category.lowStockCount > 0 ? 'warning' : ''}>{category.lowStockCount}</td>
                         <td className={category.outOfStockCount > 0 ? 'danger' : ''}>{category.outOfStockCount}</td>
                       </tr>
@@ -605,8 +497,8 @@ const MonthlyReport = () => {
                         <tr key={supplier._id}>
                           <td className="supplier-name">{supplier.supplierName}</td>
                           <td>{supplier.totalOrders}</td>
-                          <td className="value">${supplier.totalValue.toLocaleString()}</td>
-                          <td className="value">${supplier.averageOrderValue.toLocaleString()}</td>
+                          <td className="value">{formatCurrency(supplier.totalValue)}</td>
+                          <td className="value">{formatCurrency(supplier.averageOrderValue)}</td>
                           <td className={`percentage ${supplier.onTimePercentage >= 90 ? 'success' : supplier.onTimePercentage >= 80 ? 'warning' : 'danger'}`}>
                             {supplier.onTimePercentage.toFixed(1)}%
                           </td>

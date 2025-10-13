@@ -25,6 +25,7 @@ import {
 } from 'react-icons/md';
 import api from '../services/api';
 import './SupplierDashboard.css';
+import { formatCurrency } from '../utils/formatters';
 
 ChartJS.register(
   CategoryScale,
@@ -250,7 +251,7 @@ const SupplierDashboard = () => {
         <div className="card card-info">
           <div className="card-content">
             <h3>Total Order Value</h3>
-            <div className="card-value">${dashboardData.summary.totalOrderValue?.toLocaleString()}</div>
+            <div className="card-value">{formatCurrency(dashboardData.summary.totalOrderValue || 0)}</div>
           </div>
           <div className="card-icon">
             <MdAttachMoney />
@@ -314,7 +315,7 @@ const SupplierDashboard = () => {
                     <td className="po-number">{order.poNumber}</td>
                     <td>{order.supplier?.name || 'Unknown'}</td>
                     <td>{order.items?.length || 0} items</td>
-                    <td className="amount">${order.totalAmount?.toLocaleString()}</td>
+                    <td className="amount">{formatCurrency(order.totalAmount || 0)}</td>
                     <td>
                       <span className={`status-badge ${order.status}`}>
                         {order.status.toUpperCase()}

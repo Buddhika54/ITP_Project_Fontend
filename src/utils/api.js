@@ -4,23 +4,7 @@
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function apiFetch(path, { method = "GET", body, headers = {}, retries = 2, retryDelayMs = 400 } = {}) {
-  // Determine API base URL with safe fallbacks (Vite -> CRA -> localhost)
-  const viteEnv = (typeof import.meta !== "undefined" && import.meta.env) || {};
-  const API_URL =
-    viteEnv.VITE_API_URL ||
-    process.env?.REACT_APP_API_URL ||
-    "http://localhost:3001";
-
-  if (!viteEnv.VITE_API_URL && !process.env?.REACT_APP_API_URL) {
-    // Warn once if falling back to default
-    if (!window.__API_URL_FALLBACK_WARNED__) {
-      console.warn(
-        "API base URL not set (VITE_API_URL/REACT_APP_API_URL). Falling back to http://localhost:3001"
-      );
-      window.__API_URL_FALLBACK_WARNED__ = true;
-    }
-  }
-
+  const API_URL = "http://localhost:3001";
   const url = `${API_URL}${path}`;
 
   const finalHeaders = {

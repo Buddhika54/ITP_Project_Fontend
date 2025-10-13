@@ -57,28 +57,28 @@ const InventoryFlow = () => {
   const applyFilters = useCallback(() => {
     let filtered = [...transactions];
 
-    // Date range filter
     if (dateRange !== 'all') {
-      const days = parseInt(dateRange);
+      const days = parseInt(dateRange, 10);
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
-      filtered = filtered.filter(transaction => 
-        new Date(transaction.createdAt) >= cutoffDate
-      );
+      filtered = filtered.filter(transaction => new Date(transaction.createdAt) >= cutoffDate);
     }
 
-    // Transaction type filter
     if (transactionType !== 'all') {
-      filtered = filtered.filter(transaction => 
-        transaction.transactionType === transactionType
-      );
+      const typeMap = {
+        inbound: new Set(['inbound', 'receive', 'adjustment_in', 'initial_stock']),
+        outbound: new Set(['outbound', 'issue', 'adjustment_out']),
+        receive: new Set(['receive']),
+        issue: new Set(['issue']),
+        adjustment: new Set(['adjustment_in', 'adjustment_out'])
+      };
+      const allowed = typeMap[transactionType] || new Set([transactionType]);
+      filtered = filtered.filter(t => allowed.has(t.transactionType));
     }
 
-    // Item filter
     if (itemFilter !== 'all') {
-      filtered = filtered.filter(transaction => 
-        transaction.itemId === itemFilter
-      );
+      const selected = String(itemFilter);
+      filtered = filtered.filter(t => String(t.itemId) === selected);
     }
 
     setFilteredTransactions(filtered);
@@ -396,7 +396,7 @@ const InventoryFlow = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters Section */}
       <div className="filters-section">
         <div className="filters-header">
           <h3><MdFilterList /> Filters</h3>
@@ -416,8 +416,25 @@ const InventoryFlow = () => {
           </div>
         </div>
         
-        <div className="filter-controls">
-          <div className="filter-group">
+        <div 
+          className="filter-controls"
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: '20px',
+            flexWrap: 'wrap'
+          }}
+        >
+          <div 
+            className="filter-group"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '5px',
+              minWidth: '180px'
+            }}
+          >
             <label><MdDateRange /> Date Range</label>
             <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
               <option value="1">Last 24 Hours</option>
@@ -428,7 +445,15 @@ const InventoryFlow = () => {
             </select>
           </div>
 
-          <div className="filter-group">
+          <div 
+            className="filter-group"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '5px',
+              minWidth: '180px'
+            }}
+          >
             <label>Transaction Type</label>
             <select value={transactionType} onChange={(e) => setTransactionType(e.target.value)}>
               <option value="all">All Types</option>
@@ -440,7 +465,15 @@ const InventoryFlow = () => {
             </select>
           </div>
 
-          <div className="filter-group">
+          <div 
+            className="filter-group"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '5px',
+              minWidth: '180px'
+            }}
+          >
             <label>Item</label>
             <select value={itemFilter} onChange={(e) => setItemFilter(e.target.value)}>
               <option value="all">All Items</option>
@@ -455,7 +488,7 @@ const InventoryFlow = () => {
       </div>
 
       {/* Chart Section */}
-      <div className="chart-section">
+      <div className="chart-section" style={{backgroundColor: 'transparent'}}>
         <div className="chart-card">
           <div className="chart-header">
             <h3>

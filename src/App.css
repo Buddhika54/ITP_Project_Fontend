@@ -88,3 +88,81 @@ body {
 .main-content {
   /* These should not have any styles that conflict with Layout.css */
 }
+
+/* === Force white backgrounds for all content containers (no inline black) ===
+   This global override ensures cards, headers, modals, charts and tables
+   are solid white and visually separated using the theme green for borders/shadows.
+*/
+.content > * ,
+.page-header,
+.card,
+.chart-card,
+.chart-container,
+.modal,
+.modal .modal-header,
+.filters-section,
+.controls-section,
+.notifications-container,
+.summary-card,
+.stat-card,
+.warehouse-card,
+.inventory-table-container,
+.table-card,
+.notifications-list .notification-item {
+  background: #ffffff !important;
+  color: #1f2d16 !important; /* dark green / not black for readable text */
+  border-radius: 12px !important;
+  border: 1px solid rgba(76, 175, 80, 0.06) !important; /* subtle green border */
+  box-shadow: 0 8px 32px rgba(76, 175, 80, 0.06) !important;
+  backdrop-filter: none !important; /* remove dark blurs that reduce contrast */
+  text-shadow: none !important;
+}
+
+/* Ensure page headers don't show the dark background or heavy shadow */
+.page-header {
+  background: #ffffff !important;
+  color: #2e7d32 !important;
+  box-shadow: 0 6px 20px rgba(46,125,50,0.06) !important;
+}
+
+/* Chart canvas sits on white card; keep canvas transparent so chart colors show */
+.chart-container,
+.chart-container canvas {
+  background: transparent !important;
+}
+
+/* Keep modals bright and clear */
+.modal-overlay {
+  background: rgba(255,255,255,0.6); /* soft white overlay, not dark */
+}
+
+.modal {
+  background: #ffffff !important;
+  color: #1f2d16 !important;
+}
+
+/* Tables/cards spacing consistency */
+.inventory-table-container,
+.notifications-container,
+.filters-section {
+  padding: 16px !important;
+}
+
+/* Accessibility: ensure strong contrast for text and interactive elements */
+.page-header h2,
+.card-content h3,
+.stat-value,
+.item-name,
+.warehouse-name {
+  color: #2e7d32 !important;
+  text-shadow: none !important;
+}
+
+/* Small screens: allow wrapping where needed but default to inline on desktop */
+@media (min-width: 769px) {
+  .filters-section .filter-controls,
+  .controls-section .filters,
+  .filter-controls {
+    flex-wrap: nowrap !important;
+  }
+}

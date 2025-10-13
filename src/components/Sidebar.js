@@ -9,12 +9,11 @@ import {
   MdNotifications, 
   MdBusiness, 
   MdWarehouse, 
-  MdLocalFlorist,
   MdPeople,
   MdShoppingCart,
   MdKeyboardArrowDown
 } from 'react-icons/md';
-import './Side.css';
+import './Sidebar.css';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -55,8 +54,8 @@ const Sidebar = () => {
 
   return (
     <div className="sidebar">
-      <div className="bg-green-600 h-16 flex items-center justify-center ">
-        <h3 className='text-2xl text-center text-sm'>Inventory & Stock Manaegment System</h3>
+      <div className="sidebar-header">
+        <h2>Inventory & Stock Management System</h2>
       </div>
       <nav className="sidebar-nav">
         {menuItems.map((item) => (

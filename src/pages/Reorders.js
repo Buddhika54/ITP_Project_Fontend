@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatCurrency } from '../utils/formatters';
 import { 
   MdRefresh, 
   MdShoppingCart, 
@@ -7,7 +8,6 @@ import {
   MdCheckCircle,
   MdEmail,
   MdDownload,
-  MdSelectAll,
   MdAutorenew
 } from 'react-icons/md';
 import api from '../services/api';
@@ -247,7 +247,7 @@ const Reorders = () => {
         <div className="card card-success">
           <div className="card-content">
             <h3>Reorder Value</h3>
-            <div className="card-value">${totalReorderValue.toLocaleString()}</div>
+            <div className="card-value">{formatCurrency(totalReorderValue)}</div>
           </div>
           <div className="card-icon">
             <MdShoppingCart />
@@ -341,7 +341,7 @@ const Reorders = () => {
                       )}
                     </td>
                     <td className="estimated-cost">
-                      <strong>${estimatedCost.toFixed(2)}</strong>
+                      <strong>{formatCurrency(estimatedCost)}</strong>
                     </td>
                     <td className="status">
                       <div className="status-indicator">

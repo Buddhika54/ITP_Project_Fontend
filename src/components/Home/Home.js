@@ -1,20 +1,18 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom'; 
-import SideBar from '../SideBars';
-import Navbar from '../Navbar';
-import './Home.css';
+import React from 'react'
+import SideBar from '../SideBars'
+import MaintenanceSummary from '../MaintenanceSummary'
+import Navbar from '../Navbar'
 
 function Home() {
   return (
-    <div className="home-container">
+    <div className="flex"> {/* home-container */}
       <SideBar />
-      <div className="home-main">
+      <div className="flex-1 ml-64 bg-[#b5fcca] h-screen"> {/* home-main */}
         <Navbar />
-        {/* Render whichever child route is active */}
-        <Outlet />
+        <MaintenanceSummary />
       </div>
     </div>
-  );
+  )
 }
 
-export default Home;
+export default Home

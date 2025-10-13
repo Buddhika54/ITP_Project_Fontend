@@ -259,9 +259,12 @@ const CustomerList = () => {
                     type="text"
                     name={key}
                     value={formData[key]}
+                    readOnly = {key === "email"} 
                     onChange={handleChange}
-                    className="w-full border border-gray-300 px-4 py-3 rounded-md focus:ring-2 focus:ring-green-400 focus:outline-none shadow-sm"
-                  />
+                    className={`w-full border border-gray-300 px-4 py-3 rounded-md focus:outline-none shadow-sm ${
+                      key === "email" ? "bg-gray-200 cursor-not-allowed" : "focus:ring-2 focus:ring-green-400"
+                    }`}
+                                    />
                 </div>
               ))}
 

@@ -1,4 +1,3 @@
-// src/components/Admin/Sales.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../../utils/api";
 
@@ -8,7 +7,11 @@ function sum(arr) {
 
 function isSameDay(a, b = new Date()) {
   const da = new Date(a), db = new Date(b);
-  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
 }
 
 function isSameWeek(a, b = new Date()) {
@@ -16,8 +19,7 @@ function isSameWeek(a, b = new Date()) {
   const dayMs = 24 * 60 * 60 * 1000;
   const startOfWeek = new Date(db);
   startOfWeek.setHours(0, 0, 0, 0);
-  const day = startOfWeek.getDay();
-  const diffToMon = (day + 6) % 7; // Monday as start
+  const diffToMon = (startOfWeek.getDay() + 6) % 7;
   startOfWeek.setTime(startOfWeek.getTime() - diffToMon * dayMs);
   const endOfWeek = new Date(startOfWeek.getTime() + 7 * dayMs);
   return da >= startOfWeek && da < endOfWeek;
@@ -37,7 +39,7 @@ export default function Sales() {
     const load = async () => {
       try {
         setLoading(true);
-        const data = await apiFetch("/api/orders");
+        const data = await apiFetch("/api/order");
         if (data?.success) setOrders(data.orders || []);
         else setError(data?.error || "Failed to fetch orders");
       } catch (e) {
@@ -50,8 +52,7 @@ export default function Sales() {
   }, []);
 
   const metrics = useMemo(() => {
-    const paid = orders; // assuming all orders are sales; adjust if there's a paid flag later
-
+    const paid = orders;
     const todayOrders = paid.filter(o => isSameDay(o.createdAt));
     const weekOrders = paid.filter(o => isSameWeek(o.createdAt));
     const monthOrders = paid.filter(o => isSameMonth(o.createdAt));
@@ -59,10 +60,8 @@ export default function Sales() {
     const todayRevenue = sum(todayOrders.map(o => Number(o.price || 0)));
     const weekRevenue = sum(weekOrders.map(o => Number(o.price || 0)));
     const monthRevenue = sum(monthOrders.map(o => Number(o.price || 0)));
-
     const pending = orders.filter(o => (o.status || "Pending") === "Pending");
 
-    // Top selling products (by items count)
     const productMap = new Map();
     for (const o of paid) {
       const key = o.product || "Unknown";
@@ -90,170 +89,159 @@ export default function Sales() {
     };
   }, [orders]);
 
-  if (loading) return <div className="container mt-4">Loading sales...</div>;
-  if (error) return <div className="container mt-4 text-danger">{error}</div>;
+  if (loading)
+    return <div className="max-w-6xl mx-auto mt-6 px-4 text-gray-600">Loading sales...</div>;
+  if (error)
+    return <div className="max-w-6xl mx-auto mt-6 px-4 text-red-600">{error}</div>;
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-success mb-3">Sales Overview</h2>
+    <div className="max-w-6xl mx-auto mt-6 px-4 p-10 overflow-x-auto bg-white rounded-lg shadow-md bg-white/80 backdrop-blur-md">
+      <h2 className="text-green-700 font-semibold text-2xl mb-4">Sales Overview</h2>
 
-      {/* Summary cards */}
-      <div className="row g-3 mb-3">
-        <div className="col-12 col-md-6 col-lg-3">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h6 className="text-muted">Total Sales (Today)</h6>
-              <div className="fs-4 fw-bold">{metrics.counts.today}</div>
-              <div className="small text-secondary">Revenue: LKR {metrics.revenue.today.toLocaleString()}</div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          {
+            label: "Total Sales (Today)",
+            count: metrics.counts.today,
+            revenue: metrics.revenue.today,
+          },
+          {
+            label: "Total Sales (This Week)",
+            count: metrics.counts.week,
+            revenue: metrics.revenue.week,
+          },
+          {
+            label: "Total Sales (This Month)",
+            count: metrics.counts.month,
+            revenue: metrics.revenue.month,
+          },
+          {
+            label: "Pending Orders",
+            count: metrics.pendingCount,
+            revenue: "Awaiting processing or delivery",
+            pending: true,
+          },
+        ].map((item, idx) => (
+          <div
+            key={idx}
+            className="bg-white border border-gray-200 rounded-xl shadow-sm p-4"
+          >
+            <h6 className="text-gray-500 text-sm">{item.label}</h6>
+            <div className="text-2xl font-bold text-gray-800">{item.count}</div>
+            <div className="text-sm text-gray-600">
+              {item.pending
+                ? item.revenue
+                : `Revenue: LKR ${item.revenue.toLocaleString()}`}
             </div>
           </div>
-        </div>
-        <div className="col-12 col-md-6 col-lg-3">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h6 className="text-muted">Total Sales (This Week)</h6>
-              <div className="fs-4 fw-bold">{metrics.counts.week}</div>
-              <div className="small text-secondary">Revenue: LKR {metrics.revenue.week.toLocaleString()}</div>
-            </div>
-          </div>
-        </div>
-        <div className="col-12 col-md-6 col-lg-3">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h6 className="text-muted">Total Sales (This Month)</h6>
-              <div className="fs-4 fw-bold">{metrics.counts.month}</div>
-              <div className="small text-secondary">Revenue: LKR {metrics.revenue.month.toLocaleString()}</div>
-            </div>
-          </div>
-        </div>
-        <div className="col-12 col-md-6 col-lg-3">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h6 className="text-muted">Pending Orders</h6>
-              <div className="fs-4 fw-bold">{metrics.pendingCount}</div>
-              <div className="small text-secondary">Awaiting processing or delivery</div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="row g-3">
-        {/* Top Selling Products */}
-        <div className="col-12 col-lg-6">
-          <div className="card shadow-sm h-100">
-            <div className="card-body">
-              <h5 className="card-title">Top-Selling Products</h5>
-              {metrics.topProducts.length ? (
-                <>
-                  {/* Simple horizontal bar chart */}
-                  {(() => {
-                    const maxQty = Math.max(...metrics.topProducts.map(([, q]) => q), 1);
-                    return (
-                      <div>
-                        {metrics.topProducts.map(([name, qty]) => (
-                          <div key={name} className="mb-2">
-                            <div className="d-flex justify-content-between">
-                              <span className="small text-muted">{name}</span>
-                              <span className="small fw-semibold">{qty}</span>
-                            </div>
-                            <div className="progress" style={{ height: 10 }}>
-                              <div
-                                className="progress-bar bg-success"
-                                role="progressbar"
-                                style={{ width: `${Math.round((qty / maxQty) * 100)}%` }}
-                                aria-valuenow={qty}
-                                aria-valuemin="0"
-                                aria-valuemax={maxQty}
-                              />
-                            </div>
-                          </div>
-                        ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top-Selling Products */}
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+          <h5 className="font-semibold text-lg mb-3 text-gray-700">
+            Top-Selling Products
+          </h5>
+          {metrics.topProducts.length ? (
+            (() => {
+              const maxQty = Math.max(...metrics.topProducts.map(([, q]) => q), 1);
+              return (
+                <div className="space-y-3">
+                  {metrics.topProducts.map(([name, qty]) => (
+                    <div key={name}>
+                      <div className="flex justify-between text-sm text-gray-500 mb-1">
+                        <span>{name}</span>
+                        <span className="font-semibold">{qty}</span>
                       </div>
-                    );
-                  })()}
-                </>
-              ) : (
-                <div className="text-muted">No sales data yet</div>
-              )}
-            </div>
-          </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-green-600 h-2 rounded-full"
+                          style={{ width: `${(qty / maxQty) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()
+          ) : (
+            <div className="text-gray-500 text-sm">No sales data yet</div>
+          )}
         </div>
 
         {/* Recent Transactions */}
-        <div className="col-12 col-lg-6">
-          <div className="card shadow-sm h-100">
-            <div className="card-body">
-              <h5 className="card-title">Recent Transactions</h5>
-              {metrics.recent.length ? (
-                <div className="table-responsive">
-                  <table className="table table-sm">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Customer</th>
-                        <th>Product</th>
-                        <th>Items</th>
-                        <th>Total (LKR)</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {metrics.recent.map((o) => (
-                        <tr key={o._id}>
-                          <td>{new Date(o.createdAt).toLocaleString()}</td>
-                          <td>{o.customerName}</td>
-                          <td>{o.product}</td>
-                          <td>{o.items}</td>
-                          <td>{Number(o.price || 0).toLocaleString()}</td>
-                          <td>{o.status}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="text-muted">No recent orders</div>
-              )}
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+          <h5 className="font-semibold text-lg mb-3 text-gray-700">
+            Recent Transactions
+          </h5>
+          {metrics.recent.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left border-collapse">
+                <thead className="bg-green-100 text-green-800">
+                  <tr>
+                    <th className="px-3 py-2">Date</th>
+                    <th className="px-3 py-2">Customer</th>
+                    <th className="px-3 py-2">Product</th>
+                    <th className="px-3 py-2">Items</th>
+                    <th className="px-3 py-2">Total (LKR)</th>
+                    <th className="px-3 py-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {metrics.recent.map((o) => (
+                    <tr key={o._id} className="odd:bg-white even:bg-gray-50">
+                      <td className="px-3 py-2">{new Date(o.createdAt).toLocaleString()}</td>
+                      <td className="px-3 py-2">{o.customerName}</td>
+                      <td className="px-3 py-2">{o.product}</td>
+                      <td className="px-3 py-2">{o.items}</td>
+                      <td className="px-3 py-2">{Number(o.price || 0).toLocaleString()}</td>
+                      <td className="px-3 py-2">{o.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
+          ) : (
+            <div className="text-gray-500 text-sm">No recent orders</div>
+          )}
         </div>
       </div>
 
-      {/* Revenue mini chart */}
-      <div className="row g-3 mt-3">
-        <div className="col-12">
-          <div className="card shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title mb-3">Revenue (Today / Week / Month)</h5>
-              {(() => {
-                const series = [
-                  { label: "Today", value: metrics.revenue.today },
-                  { label: "Week", value: metrics.revenue.week },
-                  { label: "Month", value: metrics.revenue.month },
-                ];
-                const maxVal = Math.max(...series.map(s => s.value), 1);
-                return (
-                  <div className="d-flex align-items-end" style={{ gap: 16, height: 160 }}>
-                    {series.map((s) => (
-                      <div key={s.label} className="text-center" style={{ flex: 1 }}>
-                        <div
-                          className="bg-success"
-                          style={{
-                            height: `${Math.max(6, Math.round((s.value / maxVal) * 120))}px`,
-                            borderRadius: 6,
-                          }}
-                          title={`${s.label}: LKR ${s.value.toLocaleString()}`}
-                        />
-                        <div className="small mt-2 fw-semibold">{s.label}</div>
-                        <div className="small text-muted">LKR {s.value.toLocaleString()}</div>
-                      </div>
-                    ))}
+      {/* Revenue Mini Chart */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm mt-6 p-4">
+        <h5 className="font-semibold text-lg mb-3 text-gray-700">
+          Revenue (Today / Week / Month)
+        </h5>
+        {(() => {
+          const series = [
+            { label: "Today", value: metrics.revenue.today },
+            { label: "Week", value: metrics.revenue.week },
+            { label: "Month", value: metrics.revenue.month },
+          ];
+          const maxVal = Math.max(...series.map((s) => s.value), 1);
+          return (
+            <div className="flex items-end justify-around h-48">
+              {series.map((s) => (
+                <div key={s.label} className="text-center flex-1">
+                  <div
+                    className="mx-auto bg-green-600 rounded-md transition-all"
+                    style={{
+                      height: `${Math.max(6, Math.round((s.value / maxVal) * 120))}px`,
+                      width: "40px",
+                    }}
+                    title={`${s.label}: LKR ${s.value.toLocaleString()}`}
+                  ></div>
+                  <div className="text-sm font-semibold mt-2">{s.label}</div>
+                  <div className="text-xs text-gray-500">
+                    LKR {s.value.toLocaleString()}
                   </div>
-                );
-              })()}
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
+          );
+        })()}
       </div>
     </div>
   );

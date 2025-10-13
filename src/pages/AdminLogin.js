@@ -32,7 +32,7 @@ const AdminLogin = () => {
       const roleRoutes = {
         demanager: '/Delidashboard',
         maimanager: '/MainDashboard',
-        salmanager: '/emp-dashboard',
+        salmanager: '/admin/orders',
         inmanager: '/dashboard',
       };
 
@@ -58,7 +58,7 @@ const AdminLogin = () => {
         }else if(role === 'maimanager'){
           navigate('/MainDashboard');
         }else if(role === 'salmanager'){
-          navigate('/emp-dashboard')
+          navigate('/admin/orders')
         }else if(role === 'inmanager'){
           navigate('/dashboard')
         }else{

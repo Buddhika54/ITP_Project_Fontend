@@ -11,6 +11,7 @@ const JoinOurTeam = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     contact: "",
     subject: "",
     description: "",
@@ -67,6 +68,7 @@ const JoinOurTeam = () => {
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.password);
       formDataToSend.append("contact", formData.contact);
       formDataToSend.append("subject", formData.subject);
       formDataToSend.append("description", formData.description);
@@ -85,7 +87,7 @@ const JoinOurTeam = () => {
 
       if (response.data.success) {
         setMessage({ type: "success", text: "✅ Ticket submitted successfully!" });
-        setFormData({ name: "", email: "", contact: "", subject: "", description: "" });
+        setFormData({ name: "", email: "", password: "", contact: "", subject: "", description: "" });
         setPdfFile(null);
         setTimeout(() => navigate("/join"), 2000);
       }
@@ -167,6 +169,12 @@ const JoinOurTeam = () => {
               <label className="block font-semibold text-gray-700">Your Email *</label>
               <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-green-400" />
               {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block font-semibold text-gray-700">Your Password *</label>
+              <input type="password" name="password" value={formData.password} onChange={handleChange} className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-green-400" />
             </div>
 
             {/* Contact Number */}

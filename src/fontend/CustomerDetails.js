@@ -5,6 +5,7 @@ import {
   FaBars, 
   FaTimes,  
   FaBuilding,
+  FaEye,
   FaUser,
   FaEnvelope,
   FaPhone,
@@ -88,6 +89,7 @@ const CustomerJoinForm = () => {
           companyName: "",
           contactPerson: "",
           email: "",
+          password: "",
           phone: "",
           address: "",
           country: "",
@@ -192,6 +194,20 @@ const CustomerJoinForm = () => {
               name="email"
               placeholder="Email *"
               value={formData.email}
+              onChange={handleChange}
+              className="w-full focus:outline-none"
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div className="flex items-center border rounded px-3 py-2">
+            <FaEye className="text-green-600 mr-2" />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password *"
+              value={formData.password}
               onChange={handleChange}
               className="w-full focus:outline-none"
               required

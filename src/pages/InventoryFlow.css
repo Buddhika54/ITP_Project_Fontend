@@ -206,6 +206,9 @@
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 32px rgba(76, 175, 80, 0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 50vh;
 }
 
 .section-header {
@@ -230,6 +233,7 @@
 }
 
 .transactions-table-container {
+  flex: 1;
   max-height: 600px;
   overflow-y: auto;
 }
@@ -403,6 +407,11 @@
   text-align: center;
   padding: 60px;
   color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  flex: 1;
 }
 
 .no-transactions h3 {

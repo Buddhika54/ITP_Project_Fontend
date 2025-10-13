@@ -13,15 +13,37 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 export default function DeliveryDashboard() {
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     fetchDeliveries();
+    // Poll for updates every 30 seconds
+    const interval = setInterval(fetchDeliveries, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchDeliveries = async () => {
     try {
       const res = await fetch("http://localhost:3001/api/deliveries");
       const data = await res.json();
+      
+      // Check for recently completed deliveries
+      const recentlyDelivered = data.filter(d => {
+        if (d.status === "Delivered" && d.updatedAt) {
+          const deliveryTime = new Date(d.updatedAt);
+          const now = new Date();
+          const diffMinutes = (now - deliveryTime) / (1000 * 60);
+          return diffMinutes < 5; // Delivered in last 5 minutes
+        }
+        return false;
+      });
+      
+      if (recentlyDelivered.length > 0) {
+        const lastDelivered = recentlyDelivered[recentlyDelivered.length - 1];
+        setSuccessMessage(`🎉 Delivery to ${lastDelivered.customerName} completed successfully!`);
+        setTimeout(() => setSuccessMessage(""), 10000);
+      }
+      
       setDeliveries(data);
       setLoading(false);
     } catch (err) {
@@ -109,6 +131,30 @@ export default function DeliveryDashboard() {
       </div>
 
       <div className="p-6">
+        {/* Success Message Alert */}
+        {successMessage && (
+          <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg shadow-md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-green-800">{successMessage}</p>
+              </div>
+              <button
+                onClick={() => setSuccessMessage("")}
+                className="ml-auto flex-shrink-0 text-green-500 hover:text-green-700 transition"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Status Cards */}
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">

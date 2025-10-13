@@ -1,9 +1,9 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Add useCallback
+import { formatCurrency } from '../utils/formatters';
 import { 
   MdAdd, 
   MdEdit, 
-  MdDelete, 
+  MdDelete,
   MdSearch,
   MdFilterList,
   MdRefresh,
@@ -38,6 +38,7 @@ const InventoryList = () => {
   
   // Form data
   const [formData, setFormData] = useState({
+    itemId: '',    
     itemName: '',
     description: '',
     category: '',
@@ -70,53 +71,88 @@ const InventoryList = () => {
     suppliers: []
   });
 
-  useEffect(() => {
-    fetchInventoryItems();
-    fetchFilterOptions();
-  }, []);
+  const [warehouses, setWarehouses] = useState([]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [inventoryItems, searchTerm, categoryFilter, statusFilter, warehouseFilter]);
-
-  const fetchInventoryItems = async () => {
+  // Define fetchInventoryItems with useCallback BEFORE useEffect that uses it
+  const fetchInventoryItems = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
+      
       const response = await api.get('/inventory');
-      setInventoryItems(response.data);
+      const items = response.data;
+      
+      setInventoryItems(items);
+      setFilteredItems(items);
+      
+      // Extract unique filter options
+      const categories = [...new Set(items.map(item => item.category).filter(Boolean))];
+      const warehouseOptions = [];
+      
+      // Create warehouse filter options from populated warehouse objects
+      items.forEach(item => {
+        if (item.location?.warehouse && typeof item.location.warehouse === 'object') {
+          const warehouse = item.location.warehouse;
+          if (warehouse._id && !warehouseOptions.some(w => w.id === warehouse._id)) {
+            warehouseOptions.push({
+              id: warehouse._id,
+              name: warehouse.name || warehouse.code || 'Unknown'
+            });
+          }
+        }
+      });
+      
+      setFilterOptions(prev => ({
+        ...prev,
+        categories,
+        warehouses: warehouseOptions
+      }));
+      
+      setLoading(false);
     } catch (error) {
-      console.error('Error fetching inventory:', error);
+      console.error('Error fetching inventory items:', error);
       setError('Failed to load inventory items. Please try again.');
-    } finally {
       setLoading(false);
     }
-  };
+  }, []);  // Empty dependency array for initial load
 
-  const fetchFilterOptions = async () => {
+  // Define fetchWarehouses with useCallback
+  const fetchWarehouses = useCallback(async () => {
     try {
-      const [inventoryResponse, suppliersResponse] = await Promise.all([
-        api.get('/inventory'),
-        api.get('/suppliers')
-      ]);
-
-      const items = inventoryResponse.data;
-      const suppliers = suppliersResponse.data;
-
-      const categories = [...new Set(items.map(item => item.category).filter(Boolean))];
-      const warehouses = [...new Set(items.map(item => item.location?.warehouse).filter(Boolean))];
-
-      setFilterOptions({
-        categories,
-        warehouses,
-        suppliers
-      });
+      const response = await api.get('/warehouses');
+      // Add remaining capacity information
+      const warehousesWithCapacity = response.data.map(warehouse => ({
+        ...warehouse,
+        remainingCapacity: warehouse.capacity - (warehouse.usedCapacity || 0)
+      }));
+      setWarehouses(warehousesWithCapacity);
     } catch (error) {
-      console.error('Error fetching filter options:', error);
+      console.error('Error fetching warehouses:', error);
     }
-  };
+  }, []);
 
-  const applyFilters = () => {
+  // Define fetchSuppliers with useCallback
+  const fetchSuppliers = useCallback(async () => {
+    try {
+      const response = await api.get('/suppliers');
+      setFilterOptions(prev => ({
+        ...prev,
+        suppliers: response.data
+      }));
+    } catch (error) {
+      console.error('Error fetching suppliers:', error);
+    }
+  }, []);
+
+  // NOW use useEffect with the defined functions
+  useEffect(() => {
+    fetchInventoryItems();
+    fetchWarehouses();
+    fetchSuppliers();
+  }, [fetchInventoryItems, fetchWarehouses, fetchSuppliers]); // Add dependencies
+
+  // Filters and search
+  const applyFilters = useCallback(() => {
     let filtered = inventoryItems;
 
     // Search filter
@@ -140,21 +176,35 @@ const InventoryList = () => {
 
     // Warehouse filter
     if (warehouseFilter !== 'all') {
-      filtered = filtered.filter(item => item.location?.warehouse === warehouseFilter);
+      filtered = filtered.filter(item => 
+        item.location?.warehouse?._id === warehouseFilter || 
+        item.location?.warehouse === warehouseFilter
+      );
     }
 
     setFilteredItems(filtered);
-  };
+  }, [inventoryItems, searchTerm, categoryFilter, statusFilter, warehouseFilter]);
 
   const handleAddItem = () => {
     setEditingItem(null);
     resetForm();
+    
+    // Generate a unique item ID based on timestamp and random number
+    const randomId = Math.floor(Math.random() * 10000);
+    const newItemId = `ITEM-${Date.now().toString().substring(9)}-${randomId}`;
+    
+    setFormData(prev => ({
+      ...prev,
+      itemId: newItemId
+    }));
+    
     setShowModal(true);
   };
 
   const handleEditItem = (item) => {
     setEditingItem(item);
     setFormData({
+      itemId: item.itemId || '', // Add this line
       itemName: item.itemName || '',
       description: item.description || '',
       category: item.category || '',
@@ -190,18 +240,50 @@ const InventoryList = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingItem) {
-        await api.put(`/inventory/${editingItem.itemId}`, formData);
-        alert('Item updated successfully!');
-      } else {
-        await api.post('/inventory', formData);
-        alert('Item added successfully!');
+      // Find selected warehouse
+      const selectedWarehouse = warehouses.find(w => w._id === formData.location.warehouse);
+      
+      // For new items, validate against warehouse capacity
+      if (!editingItem && selectedWarehouse && formData.currentStock > selectedWarehouse.remainingCapacity) {
+        if (!window.confirm(`Warning: Adding ${formData.currentStock} ${formData.unit} exceeds warehouse's remaining capacity of ${selectedWarehouse.remainingCapacity} units. Continue anyway?`)) {
+          return;
+        }
       }
+      
+      // For editing items, only check the difference if warehouse didn't change
+      if (editingItem && 
+          selectedWarehouse && 
+          editingItem.location?.warehouse?._id === formData.location.warehouse) {
+        const stockDifference = formData.currentStock - editingItem.currentStock;
+        if (stockDifference > 0 && stockDifference > selectedWarehouse.remainingCapacity) {
+          if (!window.confirm(`Warning: Adding ${stockDifference} more ${formData.unit} exceeds warehouse's remaining capacity of ${selectedWarehouse.remainingCapacity} units. Continue anyway?`)) {
+            return;
+          }
+        }
+      }
+      
+      const payload = {
+        ...formData,
+        location: {
+          ...formData.location,
+          warehouse: formData.location.warehouse || null
+        },
+        supplier: formData.supplier || null
+      };
+
+      if (editingItem) {
+        await api.put(`/inventory/${editingItem._id}`, payload);
+      } else {
+        await api.post('/inventory', payload);
+      }
+
       setShowModal(false);
       fetchInventoryItems();
+      fetchWarehouses(); // Refresh warehouses to update capacity
+      resetForm();
     } catch (error) {
       console.error('Error saving item:', error);
-      alert('Failed to save item. Please try again.');
+      alert(`Error saving item: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -216,21 +298,27 @@ const InventoryList = () => {
     setShowStockModal(true);
   };
 
-  const handleStockSubmit = async (e) => {
+  const handleUpdateStock = async (e) => {
     e.preventDefault();
     try {
+      // Remove or use the response variable
       await api.post(`/inventory/${stockUpdateItem.itemId}/update-stock`, stockForm);
-      alert('Stock updated successfully!');
+      
       setShowStockModal(false);
       fetchInventoryItems();
+      fetchWarehouses();
+      
+      // Success notification
+      alert(`Stock ${stockForm.type === 'receive' ? 'received' : 'issued'} successfully`);
     } catch (error) {
       console.error('Error updating stock:', error);
-      alert(`Failed to update stock: ${error.response?.data?.message || error.message}`);
+      alert(`Error updating stock: ${error.response?.data?.message || error.message}`);
     }
   };
 
   const resetForm = () => {
     setFormData({
+      itemId: '', // Add this line
       itemName: '',
       description: '',
       category: '',
@@ -269,11 +357,15 @@ const InventoryList = () => {
     return null;
   };
 
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, categoryFilter, statusFilter, warehouseFilter, inventoryItems, applyFilters]);
+
   if (loading) {
     return (
       <div className="inventory-list">
         <div className="page-header">
-          <h2>Inventory Management</h2>
+          <h2 style={{backgroundColor: 'transparent'}}>Inventory Management</h2>
         </div>
         <div className="loading">Loading inventory items...</div>
       </div>
@@ -344,7 +436,7 @@ const InventoryList = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Filters Section */}
       <div className="filters-section">
         <div className="search-box">
           <div className="search-input-wrapper">
@@ -359,8 +451,24 @@ const InventoryList = () => {
           </div>
         </div>
         
-        <div className="filter-controls">
-          <div className="filter-group">
+        <div 
+          className="filter-controls"
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: '15px',
+            flexWrap: 'wrap'
+          }}
+        >
+          <div 
+            className="filter-group"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
             <MdFilterList className="filter-icon" />
             <select
               value={categoryFilter}
@@ -374,7 +482,14 @@ const InventoryList = () => {
             </select>
           </div>
 
-          <div className="filter-group">
+          <div 
+            className="filter-group"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -387,7 +502,14 @@ const InventoryList = () => {
             </select>
           </div>
 
-          <div className="filter-group">
+          <div 
+            className="filter-group"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
             <select
               value={warehouseFilter}
               onChange={(e) => setWarehouseFilter(e.target.value)}
@@ -395,7 +517,9 @@ const InventoryList = () => {
             >
               <option value="all">All Warehouses</option>
               {filterOptions.warehouses.map(warehouse => (
-                <option key={warehouse} value={warehouse}>{warehouse}</option>
+                <option key={warehouse.id} value={warehouse.id}>
+                  {warehouse.name}
+                </option>
               ))}
             </select>
           </div>
@@ -453,12 +577,18 @@ const InventoryList = () => {
                   </td>
                   <td className="location">
                     <div className="location-info">
-                      <strong>{item.location?.warehouse}</strong>
-                      <small>{item.location?.shelf}-{item.location?.row}</small>
+                      <strong>
+                        {item.location?.warehouse?.name || 
+                         (item.location?.warehouse ? 
+                          (typeof item.location.warehouse === 'object' ? 
+                            item.location.warehouse.code : 'Unknown') : 
+                          'Not Assigned')}
+                      </strong>
+                      <small>{item.location?.shelf || '-'}-{item.location?.row || '-'}</small>
                     </div>
                   </td>
                   <td className="supplier">{item.supplier?.name || 'N/A'}</td>
-                  <td className="cost">${item.unitCost?.toFixed(2)}</td>
+                  <td className="cost">{item.unitCost ? formatCurrency(item.unitCost) : 'N/A'}</td>
                   <td>
                     <div className="action-buttons">
                       <button
@@ -511,6 +641,17 @@ const InventoryList = () => {
             
             <form onSubmit={handleSubmit} className="item-form">
               <div className="form-grid">
+                <div className="form-group">
+                  <label>Item ID *</label>
+                  <input
+                    type="text"
+                    value={formData.itemId}
+                    onChange={(e) => setFormData({ ...formData, itemId: e.target.value })}
+                    required
+                    disabled={editingItem} // Don't allow changing itemId when editing
+                  />
+                </div>
+
                 <div className="form-group">
                   <label>Item Name *</label>
                   <input
@@ -626,15 +767,36 @@ const InventoryList = () => {
                 <h4>Location Details</h4>
                 <div className="form-grid">
                   <div className="form-group">
-                    <label>Warehouse</label>
-                    <input
-                      type="text"
-                      value={formData.location.warehouse}
-                      onChange={(e) => setFormData({ 
-                        ...formData, 
-                        location: { ...formData.location, warehouse: e.target.value }
-                      })}
-                    />
+                    <label>Warehouse *</label>
+                    <select
+                      value={formData.location.warehouse || ''}
+                      onChange={(e) => {
+                        const warehouseId = e.target.value;
+                        const selectedWarehouse = warehouses.find(w => w._id === warehouseId);
+                        
+                        // Show warning if quantity exceeds capacity
+                        if (selectedWarehouse && formData.currentStock > selectedWarehouse.remainingCapacity) {
+                          alert(`Warning: Current stock (${formData.currentStock} ${formData.unit}) exceeds warehouse's remaining capacity (${selectedWarehouse.remainingCapacity} units).`);
+                        }
+                        
+                        setFormData({
+                          ...formData,
+                          location: { ...formData.location, warehouse: warehouseId }
+                        });
+                      }}
+                      required
+                    >
+                      <option value="">Select Warehouse</option>
+                      {warehouses.map(warehouse => (
+                        <option 
+                          key={warehouse._id} 
+                          value={warehouse._id} 
+                          disabled={warehouse.remainingCapacity <= 0 && !editingItem}
+                        >
+                          {warehouse.name} ({warehouse.code}) - {warehouse.remainingCapacity} units available
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="form-group">
                     <label>Shelf</label>
@@ -685,7 +847,7 @@ const InventoryList = () => {
               </button>
             </div>
             
-            <form onSubmit={handleStockSubmit} className="stock-form">
+            <form onSubmit={handleUpdateStock} className="stock-form">
               <div className="current-stock-info">
                 <p><strong>Current Stock:</strong> {stockUpdateItem?.currentStock} {stockUpdateItem?.unit}</p>
                 <p><strong>Status:</strong> 

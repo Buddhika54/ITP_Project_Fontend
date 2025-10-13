@@ -78,6 +78,7 @@ const Supplier = () => {
           name: "",
           email: "",
           subject: "",
+          password: "",
           description: "",
           vehicleType: "",
           vehicleNumber: "",
@@ -194,6 +195,18 @@ const Supplier = () => {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-green-400"
               />
               {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block font-semibold text-gray-700">Your Password *</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-green-400"
+              />
             </div>
 
             {/* Subject */}

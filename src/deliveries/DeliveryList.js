@@ -35,9 +35,9 @@ export default function DeliveryList() {
     if (searchTerm) {
       filtered = filtered.filter(
         (d) =>
-          d.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          d.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          d.contactNumber.includes(searchTerm)
+          (d.customerName && d.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (d.product && d.product.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (d.contactNumber && d.contactNumber.includes(searchTerm))
       );
     }
 
@@ -77,7 +77,16 @@ export default function DeliveryList() {
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        setMessage("✅ Status updated successfully");
+        // Show special message for completed deliveries
+        if (status === "Delivered") {
+          setMessage("🎉 Delivery completed successfully! Great job!");
+        } else if (status === "Out for Delivery") {
+          setMessage("🚚 Delivery is now out for delivery");
+        } else if (status === "Cancelled") {
+          setMessage("❌ Delivery has been cancelled");
+        } else {
+          setMessage("✅ Status updated successfully");
+        }
         fetchDeliveries();
       } else {
         const errorData = await res.json();
@@ -106,99 +115,109 @@ export default function DeliveryList() {
   };
 
   const generatePDF = () => {
-    if (filteredDeliveries.length === 0) {
-      setMessage("❌ No data to generate PDF");
-      return;
-    }
+    try {
+      if (filteredDeliveries.length === 0) {
+        setMessage("❌ No data to generate PDF");
+        return;
+      }
 
-    const doc = new jsPDF();
+      console.log("Starting PDF generation...");
+      const doc = new jsPDF();
 
-    // Add title
-    doc.setFontSize(18);
-    doc.setTextColor(34, 77, 44); // green color
-    doc.text("Delivery Management Report", 14, 20);
+      // Add title
+      doc.setFontSize(18);
+      doc.setTextColor(34, 77, 44);
+      doc.text("Delivery Management Report", 14, 20);
 
-    // Add date and filters info
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    const currentDate = new Date().toLocaleDateString();
-    doc.text(`Generated on: ${currentDate}`, 14, 28);
+      // Add date and filters info
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      const currentDate = new Date().toLocaleDateString();
+      doc.text(`Generated on: ${currentDate}`, 14, 28);
 
-    let yPos = 36;
+      let yPos = 36;
 
-    if (searchTerm) {
-      doc.text(`Search Term: "${searchTerm}"`, 14, yPos);
-      yPos += 6;
-    }
-
-    if (statusFilter !== "All") {
-      doc.text(`Status Filter: ${statusFilter}`, 14, yPos);
-      yPos += 6;
-    }
-
-    // Status summary
-    const statusCounts = filteredDeliveries.reduce((acc, delivery) => {
-      acc[delivery.status] = (acc[delivery.status] || 0) + 1;
-      return acc;
-    }, {});
-
-    if (Object.keys(statusCounts).length > 0) {
-      doc.text("Status Summary:", 14, yPos);
-      yPos += 6;
-      Object.entries(statusCounts).forEach(([status, count]) => {
-        doc.text(`${status}: ${count}`, 14, yPos);
+      if (searchTerm) {
+        doc.text(`Search Term: "${searchTerm}"`, 14, yPos);
         yPos += 6;
+      }
+
+      if (statusFilter !== "All") {
+        doc.text(`Status Filter: ${statusFilter}`, 14, yPos);
+        yPos += 6;
+      }
+
+      // Status summary
+      const statusCounts = filteredDeliveries.reduce((acc, delivery) => {
+        acc[delivery.status] = (acc[delivery.status] || 0) + 1;
+        return acc;
+      }, {});
+
+      if (Object.keys(statusCounts).length > 0) {
+        doc.text("Status Summary:", 14, yPos);
+        yPos += 6;
+        Object.entries(statusCounts).forEach(([status, count]) => {
+          doc.text(`  ${status}: ${count}`, 14, yPos);
+          yPos += 6;
+        });
+        yPos += 4;
+      }
+
+      // Table headers & rows
+      const tableColumn = ["Customer", "Contact", "Product", "Quantity", "Status"];
+      const tableRows = filteredDeliveries.map((delivery) => [
+        delivery.customerName || "N/A",
+        delivery.contactNumber || "N/A",
+        delivery.product || "N/A",
+        delivery.orderQuantity ? delivery.orderQuantity.toString() : "0",
+        delivery.status || "Pending",
+      ]);
+
+      console.log("Creating table with", tableRows.length, "rows");
+
+      // Use autoTable function directly
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: yPos,
+        theme: "grid",
+        headStyles: {
+          fillColor: [34, 77, 44],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+        },
+        styles: {
+          fontSize: 10,
+          cellPadding: 3,
+        },
+        alternateRowStyles: {
+          fillColor: [249, 250, 251],
+        },
+        margin: { top: yPos },
       });
-      yPos += 4;
+
+      // Footer with page numbers
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(10);
+        doc.setTextColor(128, 128, 128);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.width - 50,
+          doc.internal.pageSize.height - 10
+        );
+      }
+
+      // Save PDF
+      const fileName = `Delivery_Report_${currentDate.replace(/\//g, "-")}.pdf`;
+      console.log("Saving PDF:", fileName);
+      doc.save(fileName);
+      setMessage("✅ PDF report generated successfully!");
+    } catch (error) {
+      console.error("PDF Generation Error:", error);
+      setMessage(`❌ Error generating PDF: ${error.message}`);
     }
-
-    // Table headers & rows
-    const tableColumn = ["Customer", "Contact", "Product", "Quantity", "Status"];
-    const tableRows = filteredDeliveries.map((delivery) => [
-      delivery.customerName,
-      delivery.contactNumber,
-      delivery.product,
-      delivery.orderQuantity.toString(),
-      delivery.status,
-    ]);
-
-    // ✅ Use autoTable(doc, {...}) instead of doc.autoTable({...})
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: yPos,
-      theme: "grid",
-      headStyles: {
-        fillColor: [34, 77, 44],
-        textColor: [255, 255, 255],
-        fontStyle: "bold",
-      },
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-      },
-      alternateRowStyles: {
-        fillColor: [249, 250, 251],
-      },
-      margin: { top: yPos },
-    });
-
-    // Footer with page numbers
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(10);
-      doc.setTextColor(128, 128, 128);
-      doc.text(
-        `Page ${i} of ${pageCount}`,
-        doc.internal.pageSize.width - 50,
-        doc.internal.pageSize.height - 10
-      );
-    }
-
-    // Save PDF
-    doc.save(`Delivery_Report_${currentDate.replace(/\//g, "-")}.pdf`);
-    setMessage("✅ PDF report generated successfully!");
   };
 
   return (
@@ -218,6 +237,17 @@ export default function DeliveryList() {
             </div>
             
             <div className="flex space-x-3">
+              <button
+                onClick={() => navigate("/drivers")}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 font-medium flex items-center shadow-sm"
+                title="View Active Drivers & GPS Tracking"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Active Drivers
+              </button>
               <button
                 onClick={() => navigate("/make-delivery")}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 font-medium flex items-center shadow-sm"
@@ -445,6 +475,19 @@ export default function DeliveryList() {
                       {/* Actions */}
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
+                          {delivery.status === "Out for Delivery" && (
+                            <button
+                              onClick={() => navigate("/drivers")}
+                              className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md hover:bg-blue-200 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 flex items-center text-sm"
+                              title="Track on GPS"
+                            >
+                              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              Track
+                            </button>
+                          )}
                           <button
                             onClick={() => navigate(`/deliveries/edit/${delivery._id}`)}
                             className="bg-green-100 text-green-700 px-3 py-1 rounded-md hover:bg-green-200 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-200 flex items-center text-sm"

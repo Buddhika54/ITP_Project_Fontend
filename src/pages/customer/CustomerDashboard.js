@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from "react";
-import OrderForm from "../../components/Orders/OrderForm";
-import { apiFetch } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
 
 export default function CustomerDashboard() {
   const [orders, setOrders] = useState([]);
-  const [showForm, setShowForm] = useState(false);
+  const navigate = useNavigate();
+  const API_URL = "http://localhost:3001";
+  const customerEmail = localStorage.getItem("customerEmail") || "";
 
   // Fetch orders
   const fetchOrders = async () => {
     try {
-      const data = await apiFetch("/api/orders");
-      if (data?.success) setOrders(data.orders);
-      else alert("❌ Failed to fetch orders: " + (data?.error || "Unknown error"));
+      const url = customerEmail
+        ? `${API_URL}/api/order?customerEmail=${encodeURIComponent(customerEmail)}`
+        : `${API_URL}/api/order`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        setOrders(data.orders);
+      } else {
+        alert("❌ Failed to fetch orders: " + data.error);
+      }
     } catch (err) {
       console.error("Error fetching orders:", err);
       alert("❌ Error fetching orders");
@@ -22,65 +30,55 @@ export default function CustomerDashboard() {
     fetchOrders();
   }, []);
 
-  const handleFormClose = () => {
-    setShowForm(false);
-  };
-
-  const handleOrderSaved = () => {
-    fetchOrders();
-    setShowForm(false);
-  };
+  const goToTeaOrder = () => navigate("/customer/orders/new");
+  const goToAccessoriesOrder = () => navigate("/customer/orders/new/accessories");
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-success mb-3">Customer Dashboard</h2>
+    <div className="max-w-6xl mx-auto p-10 overflow-x-auto bg-white rounded-lg shadow-md bg-white/80 backdrop-blur-md">
+      <h2 className="text-2xl font-semibold text-green-700 mb-6">Customer Dashboard</h2>
 
-      <button
-        className="btn btn-primary mb-3"
-        onClick={() => setShowForm(true)}
-      >
-        + Create Order
-      </button>
+      <div className="flex flex-wrap gap-3 mb-6">
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={goToTeaOrder}
+        >
+          + Create Order
+        </button>
+        <button
+          className="px-4 py-2 border border-green-600 text-green-600 rounded hover:bg-green-50"
+          onClick={goToAccessoriesOrder}
+        >
+          + Order Accessories
+        </button>
+      </div>
 
-      {showForm && (
-        <OrderForm onClose={handleFormClose} onSaved={handleOrderSaved} />
-      )}
-
-      <div className="table-responsive">
-        <table className="table table-bordered table-striped">
-          <thead className="table-success">
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200 divide-y divide-gray-200">
+          <thead className="bg-green-100">
             <tr>
-              <th>Customer Name</th>
-              <th>Email</th>
-              <th>Contact</th>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Specifications</th>
-              <th>Delivery Instructions</th>
+              <th className="px-3 py-2 text-left text-sm font-medium">Customer Name</th>
+              <th className="px-3 py-2 text-left text-sm font-medium">Contact</th>
+              <th className="px-3 py-2 text-left text-sm font-medium">Product</th>
+              <th className="px-3 py-2 text-left text-sm font-medium">Quantity</th>
+              <th className="px-3 py-2 text-left text-sm font-medium">Specifications</th>
+              <th className="px-3 py-2 text-left text-sm font-medium">Delivery Instructions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-white divide-y divide-gray-200">
             {orders.length > 0 ? (
-              orders.map((order, idx) => (
-                <tr key={order._id || order.orderId || idx}>
-                  <td>{order.customerName}</td>
-                  <td>{order.customerEmail}</td>
-                  <td>{order.contactNumber || "-"}</td>
-                  <td>{order.product || (order.items && order.items[0]?.itemName) || "-"}</td>
-                  <td>{
-                    order.quantity != null
-                      ? order.quantity
-                      : (order.items && order.items[0]?.quantity) != null
-                      ? order.items[0].quantity
-                      : "-"
-                  }</td>
-                  <td>{order.productSpecs || "-"}</td>
-                  <td>{order.deliveryInstructions || "-"}</td>
+              orders.map((order) => (
+                <tr key={order._id} className="hover:bg-gray-50">
+                  <td className="px-3 py-2">{order.customerName}</td>
+                  <td className="px-3 py-2">{order.contactNumber || "-"}</td>
+                  <td className="px-3 py-2">{order.product}</td>
+                  <td className="px-3 py-2">{order.quantity}</td>
+                  <td className="px-3 py-2">{order.productSpecs || "-"}</td>
+                  <td className="px-3 py-2">{order.deliveryInstructions || "-"}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="text-center">
+                <td colSpan="6" className="text-center text-gray-500 py-4">
                   No orders yet
                 </td>
               </tr>

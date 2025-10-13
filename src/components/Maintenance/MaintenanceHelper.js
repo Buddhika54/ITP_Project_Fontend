@@ -42,6 +42,7 @@
 ]
 
 export const MaintenanceButtons = ({id, onMaintenanceDelete}) =>{
+    
     const navigate=useNavigate()
 
     const handleDelete=async()=>{
@@ -73,8 +74,8 @@ export const MaintenanceButtons = ({id, onMaintenanceDelete}) =>{
         <div className="action-buttons">
             <button onClick={()=>navigate(`/MainDashboard/maintenance/${id}`)}className="edit-btn">Edit</button>
             <button onClick={handleDelete}className="delete-btn">Delete</button>
-            <button  onClick={() => navigate("/MainDashboard/add-technician")}className="tech-btn">Technicians</button>
-            <button className="repo-btn">Records</button>
+            <button  onClick={() => navigate(`/MainDashboard/add-technician?id=${id}`)}className="tech-btn">Technicians</button>
+           
         </div>
     )
 

@@ -1,41 +1,71 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { MdSpa, MdAdminPanelSettings } from "react-icons/md";
+import { MdSpa } from "react-icons/md";
 
 export default function TopNav() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <nav
-      className="navbar navbar-expand-lg"
-      style={{ backgroundColor: "#2e7d32", padding: "6px 20px" }}
-    >
-      <div className="container-fluid">
-        <Link className="navbar-brand d-flex align-items-center text-white fw-bold" to="/">
-          <span aria-hidden className="me-2" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: "50%", background: "#ffffff22" }}>
+    <nav className="bg-green-800 px-5 py-2">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
+        {/* Brand */}
+        <Link
+          to="/"
+          className="flex items-center text-white font-bold text-lg"
+        >
+          <span
+            aria-hidden
+            className="flex items-center justify-center w-7 h-7 rounded-full bg-white/20 mr-2"
+          >
             <MdSpa size={18} />
           </span>
-          <span>Auction System</span>
+          <span></span>
         </Link>
 
+        {/* Toggle button (for mobile) */}
         <button
-          className="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
-          aria-expanded="false"
+          onClick={() => setIsOpen(!isOpen)}
+          className="text-white lg:hidden focus:outline-none"
           aria-label="Toggle navigation"
         >
-          <span className="navbar-toggler-icon" style={{ filter: "invert(1)" }}></span>
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            {isOpen ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            )}
+          </svg>
         </button>
 
-        <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
-            <li className="nav-item d-flex align-items-center">
-              <Link className="nav-link text-white fw-semibold d-flex align-items-center" to="/admin/login">
-                <MdAdminPanelSettings className="me-2" size={18} /> Admin Login
-              </Link>
-            </li>
+        {/* Nav links area (you can add links here later) */}
+        <div
+          className={`${
+            isOpen ? "block" : "hidden"
+          } w-full lg:w-auto lg:flex lg:items-center`}
+          id="navbarNav"
+        >
+          {/* Example links — you can add your own */}
+          {/* 
+          <ul className="flex flex-col lg:flex-row gap-3 lg:gap-6 mt-3 lg:mt-0 text-white">
+            <li><Link to="/about" className="hover:text-green-300">About</Link></li>
+            <li><Link to="/contact" className="hover:text-green-300">Contact</Link></li>
           </ul>
+          */}
         </div>
       </div>
     </nav>

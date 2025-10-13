@@ -15,69 +15,51 @@ const SAMPLE_ITEMS = [
   { name: "Tea Assortments", img: "/assets/accessories/Assort.jpg" },
 ];
 
-// Generate an inline SVG data URI placeholder to avoid external network calls
-function svgPlaceholder(text = "Accessory") {
-  const safeText = String(text).slice(0, 40);
-  const svg = `<?xml version='1.0' encoding='UTF-8'?>
-  <svg xmlns='http://www.w3.org/2000/svg' width='800' height='600'>
-    <rect width='100%' height='100%' fill='#e9ecef'/>
-    <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#6c757d' font-family='Arial, Helvetica, sans-serif' font-size='32'>${safeText}</text>
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
-
 export default function Accessories() {
   const navigate = useNavigate();
   const handleOrder = (name) => {
-    navigate(`/orders/new?product=${encodeURIComponent(name)}`);
+    navigate(`/customer/orders/new/accessories?product=${encodeURIComponent(name)}`);
   };
 
   return (
-    <div className="container mt-4">
+    <div className="max-w-7xl mx-auto px-4 mt-6 p-10 overflow-x-auto bg-white rounded-lg shadow-md bg-white/80 backdrop-blur-md">
       <h2
-        className="mb-3"
-        style={{ color: "#ffffff", textShadow: "0 1px 2px rgba(0,0,0,0.8)", fontWeight: 800 }}
+        className="mb-4 text-3xl font-extrabold text-white drop-shadow-md"
+        style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
       >
         Tea Accessories
       </h2>
 
-      <div className="row g-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {SAMPLE_ITEMS.map((item) => (
-          <div className="col-12 col-sm-6 col-lg-4" key={item.name}>
+          <div key={item.img}>
             <figure className="m-0">
-              {/* Fixed-height image box to standardize visible size */}
-              <div style={{ width: "100%", height: 320, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {/* eslint-disable-next-line jsx-a11y/img-redundant-alt */}
+              {/* Fixed-height image box */}
+              <div className="w-full h-80 flex items-center justify-center">
                 <img
                   src={item.img}
                   alt={`${item.name} image`}
-                  style={{ height: "100%", width: "auto", maxWidth: "100%", objectFit: "contain", backgroundColor: "transparent", display: "block" }}
+                  className="h-full w-auto max-w-full object-contain bg-transparent block"
                   loading="lazy"
                   onError={(e) => {
-                    // prevent infinite loop
-                    if (e.currentTarget.dataset.fallbackApplied === "true") return;
-                    e.currentTarget.dataset.fallbackApplied = "true";
-                    e.currentTarget.src = svgPlaceholder(item.name || "Accessory");
+                    e.currentTarget.src = "https://via.placeholder.com/800x600?text=Accessory";
                   }}
                 />
               </div>
-              <figcaption className="mt-2" style={{ marginTop: 8 }}>
-                <div
-                  className="d-flex align-items-center justify-content-center gap-2"
-                  style={{ minHeight: 44 }}
-                >
+
+              <figcaption className="mt-3">
+                <div className="flex items-center justify-center gap-2 min-h-[44px]">
                   <h5
-                    className="mb-0"
-                    style={{
-                      fontWeight: 700,
-                      lineHeight: 1,
-                      color: "#ffffff",
-                      textShadow: "0 1px 2px rgba(0,0,0,0.8)",
-                    }}
+                    className="m-0 font-bold leading-tight text-white drop-shadow-md"
+                    style={{ textShadow: "0 1px 2px rgba(0,0,0,0.8)" }}
                   >
                     {item.name}
                   </h5>
-                  <button className="btn btn-success btn-sm" style={{ lineHeight: 1.1 }} onClick={() => handleOrder(item.name)}>
+                  <button
+                    className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white font-semibold rounded"
+                    style={{ lineHeight: 1.1 }}
+                    onClick={() => handleOrder(item.name)}
+                  >
                     Order
                   </button>
                 </div>
@@ -86,8 +68,6 @@ export default function Accessories() {
           </div>
         ))}
       </div>
-
-      {/* Removed placeholder instructions paragraph */}
     </div>
   );
 }

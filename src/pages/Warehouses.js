@@ -7,16 +7,16 @@ import {
   MdDelete,
   MdInventory,
   MdLocationOn,
-  MdBusiness,
   MdAssessment,
-  MdTrendingUp,
   MdWarning,
   MdCheckCircle,
+  MdTrendingUp,
   MdSearch,
   MdViewList,
   MdViewModule,
+  MdSwapHoriz
 } from 'react-icons/md';
-import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,6 +31,7 @@ import {
 } from 'chart.js';
 import api from '../services/api';
 import './Warehouses.css';
+import { formatCurrency } from '../utils/formatters';
 
 ChartJS.register(
   CategoryScale,
@@ -61,6 +62,7 @@ const Warehouses = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState(null);
+  const [showTransferModal, setShowTransferModal] = useState(false);
 
   const [newWarehouse, setNewWarehouse] = useState({
     name: '',
@@ -80,12 +82,17 @@ const Warehouses = () => {
     status: 'active'
   });
 
-  useEffect(() => {
-    fetchWarehouses();
-    fetchWarehouseStats();
-    fetchInventoryByWarehouse();
-  }, []);
+  const [transferData, setTransferData] = useState({
+    fromWarehouse: '',
+    toWarehouse: '',
+    itemId: '',
+    quantity: 1,
+    notes: '',
+    performedBy: 'admin'
+  });
+  const [warehouseItems, setWarehouseItems] = useState([]);
 
+  // Define all fetch functions with useCallback BEFORE using them in useEffect
   const fetchWarehouses = useCallback(async () => {
     try {
       setLoading(true);
@@ -135,6 +142,25 @@ const Warehouses = () => {
       console.error('Error fetching inventory distribution:', error);
     }
   }, []);
+
+  // NOW use useEffect with the defined functions
+  useEffect(() => {
+    fetchWarehouses();
+    fetchWarehouseStats();
+    fetchInventoryByWarehouse();
+  }, [fetchWarehouses, fetchWarehouseStats, fetchInventoryByWarehouse]); // Add dependencies
+
+  const fetchWarehouseItems = async (warehouseId) => {
+    if (!warehouseId) return;
+    
+    try {
+      const response = await api.get(`/inventory/by-warehouse/${warehouseId}`);
+      setWarehouseItems(response.data);
+    } catch (error) {
+      console.error('Error fetching warehouse items:', error);
+      setWarehouseItems([]);
+    }
+  };
 
   const handleAddWarehouse = async (e) => {
     e.preventDefault();
@@ -196,6 +222,23 @@ const Warehouses = () => {
     }
   };
 
+  const handleTransferSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      // Change this line from api.post('/api/warehouses/transfer', transferData)
+      await api.post('/warehouses/transfer', transferData);
+      setShowTransferModal(false);
+      fetchWarehouses();
+      fetchWarehouseStats();
+      fetchInventoryByWarehouse();
+      alert('Inventory transferred successfully');
+    } catch (error) {
+      console.error('Error transferring inventory:', error);
+      alert(`Failed to transfer inventory: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
   const getFilteredWarehouses = () => {
     let filtered = [...warehouses];
 
@@ -219,7 +262,7 @@ const Warehouses = () => {
   };
 
   const getCapacityUtilization = (warehouse) => {
-    const totalItems = warehouse.inventoryCount || 0;
+    const totalItems = warehouse.inventoryCount || 3000;
     const capacity = warehouse.capacity || 1;
     return Math.min((totalItems / capacity) * 100, 100);
   };
@@ -375,7 +418,7 @@ const Warehouses = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="charts-section">
+      <div className="charts-section" style={{background: 'transparent', padding: '0'}}>
         <div className="chart-row">
           <div className="chart-card">
             <div className="chart-header">
@@ -470,89 +513,66 @@ const Warehouses = () => {
             const capacityStatus = getCapacityStatus(utilization);
 
             return (
-              <div key={warehouse._id} className={`warehouse-card ${capacityStatus}`}>
+              <div className="warehouse-card" key={warehouse._id}>
                 <div className="warehouse-header">
-                  <div className="warehouse-info">
-                    <h3 className="warehouse-name">{warehouse.name || 'Unnamed Warehouse'}</h3>
-                    <div className="warehouse-code">{warehouse.code || 'N/A'}</div>
-                    <div className="warehouse-location">
-                      <MdLocationOn />
-                      {warehouse.location?.city || 'Unknown'}, {warehouse.location?.state || 'Unknown'}
-                    </div>
-                  </div>
-
-                  <div className="warehouse-actions">
-                    <button 
-                      className="btn-small btn-outline"
-                      onClick={() => {
-                        setEditingWarehouse(warehouse);
-                        setShowEditModal(true);
-                      }}
-                      title="Edit Warehouse"
-                    >
-                      <MdEdit />
-                    </button>
-                    <button 
-                      className="btn-small btn-danger"
-                      onClick={() => handleDeleteWarehouse(warehouse._id)}
-                      title="Delete Warehouse"
-                    >
-                      <MdDelete />
-                    </button>
-                  </div>
+                  <h3>{warehouse.name}</h3>
+                  <div className={`status-badge ${warehouse.status}`}>{warehouse.status}</div>
                 </div>
-
-                <div className="warehouse-content">
-                  <div className="capacity-info">
+                
+                {/* Add capacityStatus class to show capacity visually */}
+                <div className={`warehouse-details capacity-${capacityStatus}`}>
+                  <div className="detail-item">
+                    <MdLocationOn className="detail-icon" />
+                    <span>{warehouse.location?.city || 'N/A'}, {warehouse.location?.state || 'N/A'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <MdInventory className="detail-icon" />
+                    <span>{warehouse.inventoryCount || 0} items</span>
+                  </div>
+                  <div className="detail-item">
+                    <MdAssessment className="detail-icon" />
+                    <span>{formatCurrency(warehouse.totalValue || 0)}</span>
+                  </div>
+                  
+                  {/* Add capacity information */}
+                  <div className="detail-item capacity-info">
+                    <div className="capacity-label">
+                      <span>Capacity:</span>
+                      <span>{warehouse.usedCapacity || 0}/{warehouse.capacity || 0} units</span>
+                    </div>
                     <div className="capacity-bar">
-                      <div className="capacity-label">
-                        Capacity: {warehouse.inventoryCount || 0} / {warehouse.capacity || 0}
-                      </div>
-                      <div className="capacity-progress">
-                        <div 
-                          className={`capacity-fill ${capacityStatus}`}
-                          style={{ width: `${utilization}%` }}
-                        ></div>
-                      </div>
-                      <div className="capacity-percentage">{utilization.toFixed(1)}%</div>
+                      <div 
+                        className="capacity-fill" 
+                        style={{ 
+                          width: `${Math.min(100, warehouse.capacity ? (warehouse.usedCapacity / warehouse.capacity) * 100 : 0)}%`,
+                          backgroundColor: warehouse.usedCapacity / warehouse.capacity > 0.9 ? '#f44336' :
+                                          warehouse.usedCapacity / warehouse.capacity > 0.7 ? '#ff9800' : '#4caf50'
+                        }}
+                      ></div>
                     </div>
                   </div>
-
-                  <div className="warehouse-details">
-                    <div className="detail-row">
-                      <span className="detail-label">Manager:</span>
-                      <span className="detail-value">{warehouse.manager || 'Not assigned'}</span>
-                    </div>
-                    <div className="detail-row">
-                      <span className="detail-label">Phone:</span>
-                      <span className="detail-value">{warehouse.phone || 'Not provided'}</span>
-                    </div>
-                    <div className="detail-row">
-                      <span className="detail-label">Status:</span>
-                      <span className={`status-badge ${warehouse.status || 'active'}`}>
-                        {(warehouse.status || 'active').charAt(0).toUpperCase() + (warehouse.status || 'active').slice(1)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {warehouse.description && (
-                    <div className="warehouse-description">
-                      {warehouse.description}
-                    </div>
-                  )}
                 </div>
-
-                <div className="warehouse-footer">
-                  <div className="warehouse-stats">
-                    <div className="stat">
-                      <MdInventory />
-                      <span>{warehouse.inventoryCount || 0} Items</span>
-                    </div>
-                    <div className="stat">
-                      <MdBusiness />
-                      <span>{warehouse.totalValue ? `$${warehouse.totalValue.toLocaleString()}` : '$0'}</span>
-                    </div>
-                  </div>
+                
+                <div className="warehouse-actions">
+                  <button className="btn btn-icon" onClick={() => handleEditWarehouse(warehouse)}>
+                    <MdEdit />
+                  </button>
+                  <button className="btn btn-icon delete" onClick={() => handleDeleteWarehouse(warehouse._id)}>
+                    <MdDelete />
+                  </button>
+                  <button className="btn btn-secondary" onClick={() => {
+                    setTransferData({
+                      fromWarehouse: '',
+                      toWarehouse: '',
+                      itemId: '',
+                      quantity: 1,
+                      notes: '',
+                      performedBy: 'admin'
+                    });
+                    setShowTransferModal(true);
+                  }}>
+                    <MdSwapHoriz /> Transfer
+                  </button>
                 </div>
               </div>
             );
@@ -648,11 +668,26 @@ const Warehouses = () => {
                   <input
                     type="number"
                     value={newWarehouse.capacity}
-                    onChange={(e) => setNewWarehouse({...newWarehouse, capacity: e.target.value})}
+                    onChange={(e) => setNewWarehouse({...newWarehouse, capacity: parseInt(e.target.value) || 0})}
                     required
                     min="1"
                   />
+                  <small className="form-text">Maximum storage capacity in units</small>
                 </div>
+                <div className="form-group">
+                  <label>Used Capacity</label>
+                  <input
+                    type="number"
+                    value={newWarehouse.usedCapacity || 0}
+                    onChange={(e) => setNewWarehouse({...newWarehouse, usedCapacity: parseInt(e.target.value) || 0})}
+                    min="0"
+                    max={newWarehouse.capacity}
+                  />
+                  <small className="form-text">Current usage (auto-calculated from inventory)</small>
+                </div>
+              </div>
+
+              <div className="form-row">
                 <div className="form-group">
                   <label>Manager</label>
                   <input
@@ -803,12 +838,29 @@ const Warehouses = () => {
                   <label>Capacity *</label>
                   <input
                     type="number"
-                    value={editingWarehouse.capacity || ''}
-                    onChange={(e) => setEditingWarehouse({...editingWarehouse, capacity: e.target.value})}
+                    value={editingWarehouse?.capacity || 0}
+                    onChange={(e) => setEditingWarehouse({
+                      ...editingWarehouse, 
+                      capacity: parseInt(e.target.value) || 0
+                    })}
                     required
                     min="1"
                   />
+                  <small className="form-text">Maximum storage capacity in units</small>
                 </div>
+                <div className="form-group">
+                  <label>Used Capacity</label>
+                  <input
+                    type="number"
+                    value={editingWarehouse?.usedCapacity || 0}
+                    disabled={true}
+                    title="Used capacity is automatically calculated from inventory"
+                  />
+                  <small className="form-text">Current usage (calculated from inventory)</small>
+                </div>
+              </div>
+
+              <div className="form-row">
                 <div className="form-group">
                   <label>Manager</label>
                   <input
@@ -865,6 +917,115 @@ const Warehouses = () => {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Update Warehouse
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer Inventory Modal */}
+      {showTransferModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <div className="modal-header">
+              <h3>Transfer Inventory</h3>
+              <button className="close-btn" onClick={() => setShowTransferModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleTransferSubmit}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>From Warehouse *</label>
+                  <select
+                    value={transferData.fromWarehouse}
+                    onChange={(e) => {
+                      setTransferData({...transferData, fromWarehouse: e.target.value});
+                      fetchWarehouseItems(e.target.value);
+                    }}
+                    required
+                  >
+                    <option value="">Select Source Warehouse</option>
+                    {warehouses.map(warehouse => (
+                      <option key={warehouse._id} value={warehouse._id}>
+                        {warehouse.name} ({warehouse.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>To Warehouse *</label>
+                  <select
+                    value={transferData.toWarehouse}
+                    onChange={(e) => setTransferData({...transferData, toWarehouse: e.target.value})}
+                    required
+                  >
+                    <option value="">Select Destination Warehouse</option>
+                    {warehouses
+                      .filter(w => w._id !== transferData.fromWarehouse)
+                      .map(warehouse => (
+                        <option key={warehouse._id} value={warehouse._id}>
+                          {warehouse.name} ({warehouse.code})
+                        </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Item *</label>
+                  <select
+                    value={transferData.itemId}
+                    onChange={(e) => {
+                      const item = warehouseItems.find(item => item.itemId === e.target.value);
+                      setTransferData({
+                        ...transferData, 
+                        itemId: e.target.value,
+                        quantity: 1,
+                        maxQuantity: item?.currentStock || 0
+                      });
+                    }}
+                    required
+                    disabled={!transferData.fromWarehouse || warehouseItems.length === 0}
+                  >
+                    <option value="">Select Item</option>
+                    {warehouseItems.map(item => (
+                      <option key={item._id} value={item.itemId}>
+                        {item.itemName} ({item.itemId}) - {item.currentStock} {item.unit} available
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="form-group">
+                  <label>Quantity *</label>
+                  <input
+                    type="number"
+                    value={transferData.quantity}
+                    onChange={(e) => setTransferData({...transferData, quantity: parseInt(e.target.value) || 0})}
+                    min="1"
+                    max={transferData.maxQuantity}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label>Notes</label>
+                <textarea
+                  value={transferData.notes}
+                  onChange={(e) => setTransferData({...transferData, notes: e.target.value})}
+                  placeholder="Optional transfer notes"
+                ></textarea>
+              </div>
+              
+              <div className="form-actions">
+                <button type="button" className="btn btn-outline" onClick={() => setShowTransferModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Transfer Inventory
                 </button>
               </div>
             </form>

@@ -1,4 +1,8 @@
-.sidebar {
+/* Supplier Sidebar styled exactly like the admin Sidebar.css,
+   but without changing JS: .sidebar -> .supplier-sidebar */
+
+/* Shell */
+.supplier-sidebar {
   width: 280px;
   background: rgba(76, 175, 80, 0.85);
   color: white;
@@ -8,12 +12,12 @@
   position: fixed;
   left: 0;
   top: 0;
-  margin-top:0;
   height: 100vh;
   z-index: 1000;
   overflow-y: auto;
 }
 
+/* Header */
 .sidebar-header {
   padding: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
@@ -32,11 +36,13 @@
   color: white;
 }
 
+/* Nav container */
 .sidebar-nav {
   padding: 20px 0;
   background: rgba(76, 175, 80, 0.05);
 }
 
+/* Items */
 .nav-item {
   display: flex;
   align-items: center;
@@ -67,6 +73,7 @@
   box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
 }
 
+/* Icon + label */
 .nav-icon {
   margin-right: 12px;
   font-size: 16px;
@@ -81,7 +88,7 @@
   flex: 1;
 }
 
-/* Submenu Styles */
+/* Submenu */
 .submenu-toggle {
   justify-content: space-between;
   cursor: pointer;
@@ -138,27 +145,27 @@
   font-size: 13px;
 }
 
-/* Custom scrollbar */
-.sidebar::-webkit-scrollbar {
+/* Scrollbar for the sidebar shell */
+.supplier-sidebar::-webkit-scrollbar {
   width: 6px;
 }
 
-.sidebar::-webkit-scrollbar-track {
+.supplier-sidebar::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.1);
 }
 
-.sidebar::-webkit-scrollbar-thumb {
+.supplier-sidebar::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.3);
   border-radius: 3px;
 }
 
-.sidebar::-webkit-scrollbar-thumb:hover {
+.supplier-sidebar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
 
-/* Responsive Design */
+/* Responsive */
 @media (max-width: 768px) {
-  .sidebar {
+  .supplier-sidebar {
     width: 100%;
     height: auto;
     position: relative;

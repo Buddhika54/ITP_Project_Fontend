@@ -8,6 +8,7 @@ const SupplierList = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    password: "",
     subject: "",
     description: "",
     vehicleType: "",
@@ -324,10 +325,10 @@ const SupplierList = () => {
                     name={key}
                     value={formData[key]}
                     onChange={handleChange}
-                    disabled={key === "email" || key === "status"}
-                    readOnly={key === "email" || key === "status"}
+                    disabled={key === "email" || key === "password" || key === "status"}
+                    readOnly={key === "email" || key === "password" || key === "status"}
                     className={`w-full border px-3 py-2 rounded focus:ring-2 focus:ring-green-400 ${
-                      key === "email" || key === "status"
+                      key === "email" || key === "password" || key === "status"
                         ? "bg-gray-100 cursor-not-allowed"
                         : ""
                     }`}

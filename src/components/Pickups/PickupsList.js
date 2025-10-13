@@ -1,4 +1,3 @@
-// src/components/Pickups/PickupsList.jsx
 import React, { useEffect, useState } from "react";
 import PickupForm from "./PickupForm";
 
@@ -6,7 +5,7 @@ export default function PickupsList({ orders }) {
   const [pickups, setPickups] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = "http://localhost:3001";
 
   const fetchPickups = async () => {
     try {
@@ -32,14 +31,16 @@ export default function PickupsList({ orders }) {
   };
 
   return (
-    <div className="container mt-4">
-      <h2 className="text-success mb-3">Pickups</h2>
-      <button
-        className="btn btn-primary mb-3"
-        onClick={() => setShowForm(true)}
-      >
-        Schedule Pickup
-      </button>
+    <div className="max-w-5xl mx-auto mt-6 px-4 p-10 overflow-x-auto bg-white rounded-lg shadow-md bg-white/80 backdrop-blur-md">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-green-700 text-2xl font-semibold">Pickups</h2>
+        <button
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => setShowForm(true)}
+        >
+          Schedule Pickup
+        </button>
+      </div>
 
       {showForm && (
         <PickupForm
@@ -49,40 +50,42 @@ export default function PickupsList({ orders }) {
         />
       )}
 
-      <table className="table table-bordered table-striped">
-        <thead className="table-success">
-          <tr>
-            <th>Client Name</th>
-            <th>Order</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Truck</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pickups.length > 0 ? (
-            pickups.map((pickup) => (
-              <tr key={pickup._id}>
-                <td>{pickup.clientName}</td>
-                <td>
-                  {pickup.orderId?.customerName} - {pickup.orderId?.product}
-                </td>
-                <td>{new Date(pickup.pickupDate).toLocaleDateString()}</td>
-                <td>{pickup.pickupTime}</td>
-                <td>{pickup.truckAssigned}</td>
-                <td>{pickup.status}</td>
-              </tr>
-            ))
-          ) : (
+      <div className="overflow-x-auto bg-white rounded-lg shadow-md">
+        <table className="min-w-full border border-gray-300 rounded-lg">
+          <thead className="bg-green-100">
             <tr>
-              <td colSpan="6" className="text-center">
-                No pickups scheduled
-              </td>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">Client Name</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">Order</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">Date</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">Time</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">Truck</th>
+              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">Status</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {pickups.length > 0 ? (
+              pickups.map((pickup) => (
+                <tr key={pickup._id} className="hover:bg-gray-50">
+                  <td className="px-4 py-2">{pickup.clientName}</td>
+                  <td className="px-4 py-2">
+                    {pickup.orderId?.customerName} - {pickup.orderId?.product}
+                  </td>
+                  <td className="px-4 py-2">{new Date(pickup.pickupDate).toLocaleDateString()}</td>
+                  <td className="px-4 py-2">{pickup.pickupTime}</td>
+                  <td className="px-4 py-2">{pickup.truckAssigned}</td>
+                  <td className="px-4 py-2">{pickup.status}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="text-center py-4 text-gray-500">
+                  No pickups scheduled
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
