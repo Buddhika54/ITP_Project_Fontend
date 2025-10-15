@@ -272,7 +272,7 @@ const InventoryList = () => {
       };
 
       if (editingItem) {
-        await api.put(`/inventory/${editingItem._id}`, payload);
+        await api.put(`/inventory/${editingItem.itemId}`, payload);
       } else {
         await api.post('/inventory', payload);
       }
